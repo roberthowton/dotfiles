@@ -1,0 +1,1253 @@
+#+title: Emacs Configuration
+#+property: header-args:emacs-lisp :tangle ./init.el :mkdirp yes
+
+* Introduction
+
+** =init.el= Preface
+
+This file generates [[file:init.el][init.el]] which can be loaded by Emacs at startup.
+
+#+begin_src emacs-lisp
+;; NOTE: `init.el' is auto-generated from `emacs.org'. Save changes to `emacs.org' to edit this file.
+#+end_src
+
+** TODO List [1/5]
+
+ - [-] Configure =company=
+   - [ ] install backends
+   - [X] =company-box=
+ - [X] =M-x= to SPC SPC
+ - [ ] Hydra for window/buffer switching
+ - [ ] Populate leader key bindings
+ - [ ] Set up GPG private key support
+   - [ ] Including =epa-pinetry-mode=
+
+* Startup Behavior
+
+#+begin_src emacs-lisp
+
+(setq inhibit-startup-message t
+      initial-buffer-choice 'eshell)
+
+#+end_src
+
+* Package Managment
+** Initialize Package Sources
+
+#+begin_src emacs-lisp
+
+(require 'package)
+
+(setq package-archives '(
+			 ("melpa" . "https://melpa.org/packages/")
+			 ("melpa stable" . "https://stable.melpa.org/packages/")
+			 ("org" . "https://orgmode.org/elpa/")
+			 ("elpa" . "https://elpa.gnu.org/packages/")
+			 ))
+
+(package-initialize)
+
+#+end_src
+
+** Bootstrap =use-package=
+
+#+begin_src emacs-lisp
+
+(unless (package-installed-p 'use-package)
+  (package-refresh-contents)
+  (package-install 'use-package))
+
+(eval-when-compile
+  (require 'use-package))
+
+#+end_src
+
+** Enable =ensure=
+
+#+begin_src emacs-lisp
+
+(setq use-package-always-ensure t)
+
+#+end_src
+
+* UI Configuration
+** Basic UI Configuration
+
+#+begin_src emacs-lisp
+
+(scroll-bar-mode -1)    ; disable visible scrollbar
+(tool-bar-mode -1)      ; disable the toolbar
+(tooltip-mode -1)       ; disable tooltips
+(set-fringe-mode 10)    ; give some breathing room
+(menu-bar-mode -1)      ; disable the menu bar
+
+(setq visible-bell t)    ; set up visible bell
+
+(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+
+#+end_src
+
+*** TODO Font Faces
+
+#+begin_src emacs-lisp
+(defvar rfh/default-font-size 140)
+(defvar rfh/default-variable-font-size 140)
+
+(set-face-attribute 'default nil :font "Liberation Mono" :height rfh/default-font-size)
+
+;; Set the fixed pitch face
+(set-face-attribute 'fixed-pitch nil :font "Liberation Mono" :height rfh/default-font-size)
+
+;; Set the variable pitch face
+(set-face-attribute 'variable-pitch nil :font "Cantarell" :height rfh/default-font-size :weight 'regular)
+
+#+end_src
+
+#+begin_src emacs-lisp
+
+(use-package emojify
+  :hook (erc-mode . emojify-mode)
+  :commands emojify-mode)
+
+#+end_src
+
+*** Color Theme
+
+#+begin_src emacs-lisp
+
+  (load-theme 'modus-vivendi t)
+
+  ;; (use-package doom-theme
+  ;;   :init (load-theme 'doom-dracula t))
+
+  ;; (use-package 'modus-vivendi-theme
+  ;; :init (load-theme 'modus-vivendi-theme t)
+  ;; )
+
+  ;; (use-package 'modus-operandi-theme)
+
+  (use-package rainbow-delimiters
+  :hook (prog-mode . rainbow-delimiters-mode))
+
+#+end_src
+
+*** Modeline Configuration
+
+**** Doom-Modeline
+
+#+begin_src emacs-lisp
+
+(use-package doom-modeline
+:ensure t
+:init (doom-modeline-mode 1)
+;; :custom ((doom-modeline-height 25))
+)
+
+#+end_src
+
+**** [[https://github.com/tarsius/minions][Minions]]
+
+To consolidate information about active and available minor-modes.
+
+#+begin_src emacs-lisp
+
+(use-package minions
+  :config (minions-mode 1))
+
+#+end_src
+
+*** Notifications
+
+#+begin_src emacs-lisp
+
+(use-package alert
+  :commands alert
+  :config
+  (setq alert-default-style 'notifications))
+
+#+end_src
+
+*** Icon Support
+
+#+begin_src emacs-lisp
+
+(use-package all-the-icons
+  :if (display-graphic-p)
+  :commands all-the-icons-install-fonts
+  :init
+  (unless (find-font (font-spec :name "all-the-icons"))
+  (all-the-icons-install-fonts t)))
+
+(use-package all-the-icons-dired
+  :if (display-graphic-p)
+  :hook (dired-mode . all-the-icons-dired-mode))
+
+(use-package all-the-icons-ivy
+  :init (add-hook 'after-init-hook 'all-the-icons-ivy-setup)
+  ;; :custom
+  ;; (all-the-icons-ivy-file-commands '(counsel-find-file counsel-file-jump counsel-recentf counsel-projectile-find-file counsel-projectile-find-dir))
+)
+
+#+end_src
+
+*** Brace Matching
+
+#+begin_src emacs-lisp
+
+(use-package paren
+  :config
+  (set-face-attribute 'show-paren-match-expression nil :background "#363e4a")
+  (show-paren-mode 1))
+
+#+end_src
+
+** Help Packages Configuration
+*** Which Key
+
+https://github.com/justbur/emacs-which-key
+
+#+begin_src emacs-lisp
+
+(use-package which-key
+:init (which-key-mode)
+:diminish which-key-mode
+:config
+(setq which-key-idle-delay 0))
+
+#+end_src
+
+*** Helpful
+
+https://github.com/Wilfred/helpful
+
+#+begin_src emacs-lisp
+
+(use-package helpful
+:custom
+(counsel-describe-function-function #'helpful-callable)
+(counsel-describe-variable-function #'helpful-variable)
+:bind
+([remap describe-function] . counsel-describe-function)
+([remap describe-command] . helpful-command)
+([remap describe-variable] . counsel-describe-variable)
+([remap describe-key] . helpful-key))
+
+#+end_src
+
+** Hydra
+
+#+begin_src emacs-lisp
+
+(use-package hydra
+  :defer 1)
+
+#+end_src
+
+** Completion Frameworks
+*** Ivy
+
+#+begin_src emacs-lisp
+
+(use-package ivy
+  :diminish
+  :bind (("C-s" . swiper)
+	 :map ivy-minibuffer-map
+	 ("TAB" . ivy-alt-done)
+	 ("C-l" . ivy-alt-done)
+	 ("C-j" . ivy-next-line)
+	 ("C-k" . ivy-previous-line)
+	 :map ivy-switch-buffer-map
+	 ("C-k" . ivy-previous-line)
+	 ("C-l" . ivy-done)
+	 ("C-d" . ivy-switch-buffer-kill)
+	 :map ivy-reverse-i-search-map
+	 ("C-k" . ivy-previous-line)
+	 ("C-d" . ivy-reverse-i-search-kill)
+	 )
+  :init
+  (ivy-mode 1)
+  :config
+  (setq ivy-use-virtual-buffers t)
+  (setq ivy-wrap t)
+  (setq ivy-count-format "(%d/%d) ")
+  (setq enable-recursive-minibuffers t)
+
+  ;; Use different regex strategies per completion command
+  (push '(completion-at-point . ivy--regex-fuzzy) ivy-re-builders-alist) ;; This doesn't seem to work...
+  (push '(swiper . ivy--regex-ignore-order) ivy-re-builders-alist)
+  (push '(counsel-M-x . ivy--regex-ignore-order) ivy-re-builders-alist)
+
+  ;; Set minibuffer height for different commands
+  (setf (alist-get 'counsel-projectile-ag ivy-height-alist) 15)
+  (setf (alist-get 'counsel-projectile-rg ivy-height-alist) 15)
+  (setf (alist-get 'swiper ivy-height-alist) 15)
+  (setf (alist-get 'counsel-switch-buffer ivy-height-alist) 7)
+  )
+
+#+end_src
+
+*** Ivy-Hydra
+
+#+begin_src emacs-lisp
+
+(use-package ivy-hydra
+  :defer t
+  :after hydra)
+
+#+end_src
+
+*** Ivy-Rich
+
+#+begin_src emacs-lisp
+
+(use-package ivy-rich
+  :init
+  (ivy-rich-mode 1)
+  :config
+  (setq ivy-format-function #'ivy-format-function-line))
+
+#+end_src
+
+*** Ivy-Posframe
+
+#+begin_src emacs-lisp
+
+  ;; (use-package ivy-posframe
+  ;;   ;; :custom
+  ;;   ;; (ivy-posframe-width      115)
+  ;;   ;; (ivy-posframe-min-width  115)
+  ;;   ;; (ivy-posframe-height     10)
+  ;;   ;; (ivy-posframe-min-height 10)
+  ;;   ;; :config
+  ;;   ;; (setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display-at-frame-center)))
+  ;;   ;; (setq ivy-posframe-parameters '((parent-frame . nil)
+  ;;   ;;                                 (left-fringe . 8)
+  ;;   ;;                                 (right-fringe . 8)))
+  ;;   (ivy-posframe-mode 1))
+
+#+end_src
+
+*** Counsel
+
+#+begin_src emacs-lisp
+
+(use-package counsel
+  :bind (("M-x" . counsel-M-x)
+         ("C-x b" . counsel-ibuffer)
+         ("C-x C-f" . counsel-find-file)
+         ("C-M-l" . counsel-imenu)
+         :map minibuffer-local-map
+         ("C-r" . 'counsel-minibuffer-history))
+  :config
+  (setq ivy-initial-inputs-alist nil) ;; don't start `counsel-M-x' searches with ^
+  )
+
+(use-package flx  ;; Improves sorting for fuzzy-matched results
+  :defer t
+  :init
+  (setq ivy-flx-limit 10000))
+
+(use-package smex ;; Adds M-x recent command sorting for counsel-M-x
+  :defer 1
+  :after counsel)
+
+(use-package wgrep)
+
+#+end_src
+
+*** Company-Mode
+
+#+begin_src emacs-lisp
+
+(use-package company
+  :diminish company-mode
+  ;; :bind (:map company-active-map
+   ;;  ("<tab>" . company-complete-selection))
+  :config
+  (add-hook 'after-init-hook 'global-company-mode)
+  :custom
+  (company-minimum-prefix-length 1)
+  (company-idle-delay 0.0))
+
+(use-package company-box
+  :hook (company-mode . company-box-mode))
+
+#+end_src
+
+** Keybinding Configuration
+*** General
+
+#+begin_src emacs-lisp
+
+  (use-package general
+    :config
+    (general-create-definer rfh/leader-keys
+      :keymaps '(normal insert visual emacs)
+      :prefix "SPC"
+      :global-prefix "C-SPC"))
+
+#+end_src
+
+*** Evil and Evil-Collection
+
+#+begin_src emacs-lisp
+
+(use-package evil
+  :init
+  (setq evil-want-integration t)
+  (setq evil-want-keybinding nil)
+  (setq evil-want-C-u-scroll t)
+  (setq evil-want-C-i-jump nil)
+  :config
+  (evil-mode 1)
+  (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
+  (define-key evil-insert-state-map (kbd "C-h") 'evil-delete-backward-char-and-join)
+
+  ;; Use visual line motions even outside of visual-line-mode buffers
+  (evil-global-set-key 'motion "j" 'evil-next-visual-line)
+  (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
+
+  (evil-set-initial-state 'messages-buffer-mode 'normal)
+  (evil-set-initial-state 'dashboard-mode 'normal)) 
+
+(use-package evil-collection
+  :after evil
+  :config
+  (evil-collection-init))
+
+#+end_src
+
+*** UI Controls
+**** Theme Switching
+#+begin_src emacs-lisp
+
+  (rfh/leader-keys
+    "t"  '(:ignore t :which-key "toggles")
+    "tt" '(counsel-load-theme :which-key "choose theme"))
+
+#+end_src
+**** Text-Scaling
+
+#+begin_src emacs-lisp
+
+(defhydra hydra-text-scale (:timeout 4)
+  "scale text"
+  ("j" text-scale-increase "up")
+  ("k" text-scale-decrease "down")
+  ("f" nil "finished" :exit t))
+
+(rfh/leader-keys
+  "ts" '(hydra-text-scale/body :which-key "scale text"))
+
+#+end_src
+
+*** Basic Leader-Key Configuration
+
+#+begin_src emacs-lisp
+
+  (rfh/leader-keys
+    "SPC"   '(counsel-M-x :which-key "M-x")
+    "f"     '(:ignore t :which-key "files")
+    "ff"    '(counsel-find-file :which-key "find file")
+    "fr"    '(counsel-recentf :which-key "recent files")
+    "fs"    '(save-buffer :which-key "save current buffer")
+    "fh"    '(counsel-org-goto :which-key "go to org heading")
+    "w"     '(:ignore t :which-key "windows")
+    "wq"    '(quit-window :which-key "quit window")
+    "wd"    '(delete-window :which-key "delete window")
+    "b"     '(:ignore t :which-key "buffers")
+    "bb"    '(ivy-switch-buffer :which-key "switch buffer")
+   )
+
+#+end_src
+
+** Jumping with =avy=
+
+#+begin_src emacs-lisp
+
+  (use-package avy
+    :commands (avy-goto-char avy-goto-word-0 avy-goto-line))
+
+  (rfh/leader-keys
+    "j"   '(:ignore t :which-key "jump")
+    "jj"  '(avy-goto-char :which-key "jump to char")
+    "jw"  '(avy-goto-word-0 :which-key "jump to word")
+    "jl"  '(avy-goto-line :which-key "jump to line"))
+
+#+end_src
+
+** Notifications
+
+#+begin_src emacs-lisp
+
+  (use-package alert
+    :commands alert
+    :config
+    (setq alert-default-style 'notifications))
+
+#+end_src
+
+* Window Management
+** Frame Scaling/Zooming
+
+The keybindings for this are =C+M+-= and =C+M+=.
+
+#+begin_src emacs-lisp
+
+  (use-package default-text-scale
+    :defer 1
+    :config
+    (default-text-scale-mode))
+
+#+end_src
+
+** Window Selection
+
+#+begin_src emacs-lisp
+
+(use-package ace-window
+  :bind (("M-o" . ace-window))
+  :config
+  (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l)))
+
+#+end_src
+
+** Window History with winner-mode
+
+#+begin_src emacs-lisp
+
+  (winner-mode)
+  (define-key evil-window-map "u" 'winner-undo)
+
+#+end_src
+
+** Set Margins for Modes
+
+#+begin_src emacs-lisp
+
+(defun rfh/org-mode-visual-fill ()
+  (setq visual-fill-column-width 100
+        visual-fill-column-center-text t)
+  (visual-fill-column-mode 1))
+
+(use-package visual-fill-column
+  :defer t
+  :hook (org-mode . rfh/org-mode-visual-fill))
+
+#+end_src
+
+* Editing Configuration
+** Tab Widths
+
+#+begin_src emacs-lisp
+
+(setq-default tab-width 2)
+(setq-default evil-shift-width tab-width)
+
+#+end_src
+** Yank Ring
+
+#+begin_src emacs-lisp
+
+(use-package counsel
+  :bind
+  (("M-y" . counsel-yank-pop)
+   :map ivy-minibuffer-map
+   ("M-y" . ivy-next-line)))
+
+(rfh/leader-keys
+"y" '(counsel-yank-pop :which-key "yank ring"))
+
+#+end_src
+
+** Spaces Instead of Tabs
+
+#+begin_src emacs-lisp
+
+(setq-default indent-tabs-mode nil)
+
+#+end_src
+
+** Commenting Lines
+#+begin_src emacs-lisp
+
+(use-package evil-nerd-commenter)
+
+(rfh/leader-keys
+ ";" '(evilnc-comment-or-uncomment-lines :which-key "comment/uncomment lines"))
+
+#+end_src
+
+** Automatically Clean Whitespace
+
+#+begin_src emacs-lisp
+(use-package ws-butler
+  :hook ((text-mode . ws-butler-mode)
+         (prog-mode . ws-butler-mode)))
+#+end_src
+
+** Expand Region
+
+This module is absolutely necessary for working inside of Emacs Lisp files,
+especially when trying to some parent of an expression (like a =setq=).  Makes
+tweaking Org agenda views much less annoying.
+
+#+begin_src emacs-lisp
+
+  (use-package expand-region
+    :bind (("M-[" . er/expand-region)
+           ("C-(" . er/mark-outside-pairs)))
+
+#+end_src
+
+* Editing Tools
+
+** Productivity Tools
+
+*** Syntax checking with Flycheck
+
+#+begin_src emacs-lisp
+
+  (use-package flycheck
+    :defer t
+    :hook (lsp-mode . flycheck-mode))
+
+#+end_src
+
+*** Snippets
+
+#+begin_src emacs-lisp
+
+  (use-package yasnippet
+    :hook (prog-mode . yas-minor-mode)
+    :config
+    (yas-reload-all))
+
+#+end_src
+
+*** Smart Parens
+
+#+begin_src emacs-lisp
+
+  (use-package smartparens
+    :hook (prog-mode . smartparens-mode))
+
+#+end_src
+
+*** Rainbow Delimiters
+
+#+begin_src emacs-lisp
+
+  (use-package rainbow-delimiters
+    :hook (prog-mode . rainbow-delimiters-mode))
+
+#+end_src
+
+*** Rainbow Mode
+
+Sets the background of HTML color strings in buffers to be the color mentioned.
+
+#+begin_src emacs-lisp
+
+(use-package rainbow-mode
+  :defer t
+  :hook (org-mode
+         emacs-lisp-mode
+         web-mode
+         typescript-mode
+         js2-mode))
+
+#+end_src
+
+** Languages
+
+*** TODO LaTeX
+*** Emacs Lisp
+
+#+begin_src emacs-lisp
+
+  (add-hook 'emacs-lisp-mode-hook #'flycheck-mode)
+
+  (rfh/leader-keys
+    "e"   '(:ignore t :which-key "eval")
+    "eb"  '(eval-buffer :which-key "eval buffer"))
+
+  (rfh/leader-keys
+    :keymaps '(visual)
+    "er" '(eval-region :which-key "eval region"))
+
+#+end_src
+*** Markdown
+
+#+begin_src emacs-lisp
+
+  (use-package markdown-mode
+    :mode "\\.md\\'"
+    :config
+    (setq markdown-command "marked")
+    (defun rfh/set-markdown-header-font-sizes ()
+      (dolist (face '((markdown-header-face-1 . 1.2)
+                      (markdown-header-face-2 . 1.1)
+                      (markdown-header-face-3 . 1.0)
+                      (markdown-header-face-4 . 1.0)
+                      (markdown-header-face-5 . 1.0)))
+        (set-face-attribute (car face) nil :weight 'normal :height (cdr face))))
+
+    (defun rfh/markdown-mode-hook ()
+      (rfh/set-markdown-header-font-sizes))
+
+    (add-hook 'markdown-mode-hook 'rfh/markdown-mode-hook))
+
+#+end_src
+*** HTML
+
+#+begin_src emacs-lisp
+
+(use-package web-mode
+  :mode "(\\.\\(html?\\|ejs\\|tsx\\|jsx\\)\\'"
+  :config
+  (setq-default web-mode-code-indent-offset 2)
+  (setq-default web-mode-markup-indent-offset 2)
+  (setq-default web-mode-attribute-indent-offset 2))
+
+;; 1. Start the server with `httpd-start'
+;; 2. Use `impatient-mode' on any buffer
+(use-package impatient-mode
+  :ensure t)
+
+(use-package skewer-mode
+  :ensure t)
+
+#+end_src
+*** YAML
+
+#+begin_src emacs-lisp
+
+  (use-package yaml-mode
+    :mode "\\.ya?ml\\'")
+
+#+end_src
+
+* Project Managment
+
+** Projectile
+
+#+begin_src emacs-lisp
+
+(use-package projectile
+  :diminish projectile-mode
+  :config (projectile-mode)
+  :custom ((projectile-completion-system 'ivy))
+  ;; :bind-keymap
+  ;; ("C-c p" . projectile-command-map)
+  :init
+  ;; NOTE: Set this to the folder where you keep your Git repos!
+  (when (file-directory-p "~/projects")
+  (setq projectile-project-search-path '("~/projects")))
+  (setq projectile-switch-project-action #'projectile-dired)
+  )
+
+(rfh/leader-keys
+  "p" '(projectile-command-map :which-key "projectile"))
+
+(use-package counsel-projectile
+  :config (counsel-projectile-mode))
+
+#+end_src
+
+** Magit
+
+#+begin_src emacs-lisp
+
+(use-package magit
+  :custom
+  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
+
+(use-package evil-magit
+  :after magit)
+
+(rfh/leader-keys
+  "g"   '(:ignore t :which-key "git")
+  "gs"  'magit-status
+  "gd"  'magit-diff-unstaged
+  "gc"  'magit-branch-or-checkout
+  "gl"   '(:ignore t :which-key "log")
+  "glc" 'magit-log-current
+  "glf" 'magit-log-buffer-file
+  "gb"  'magit-branch
+  "gP"  'magit-push-current
+  "gp"  'magit-pull-branch
+  "gf"  'magit-fetch
+  "gF"  'magit-fetch-all
+  "gr"  'magit-rebase)
+
+#+end_src
+
+* Terminals
+
+** Term-Mode
+
+#+begin_src emacs-lisp
+
+(use-package term
+  :config
+  (setq explicit-shell-file-name "bash") ;; Change this to zsh, etc
+  ;;(setq explicit-zsh-args '())         ;; Use 'explicit-<shell>-args for shell-specific args
+
+  ;; Match the default Bash shell prompt.  Update this if you have a custom prompt
+  (setq term-prompt-regexp "^[^#$%>\n]*[#$%>] *"))
+
+ ;; better `term-mode' colors
+
+ (use-package eterm-256color
+   :hook (term-mode . eterm-256color-mode))
+
+(rfh/leader-keys
+  "s"  '(:ignore t :which-key "shells")
+  "st" '(eshell :which-key "term"))
+
+#+end_src
+
+** TODO Vterm
+
+** Eshell
+
+*** Configuration
+
+#+begin_src emacs-lisp
+
+(defun rfh/configure-eshell ()
+  ;; Save command history when commands are entered
+  (add-hook 'eshell-pre-command-hook 'eshell-save-some-history)
+
+  ;; Truncate buffer for performance
+  (add-to-list 'eshell-output-filter-functions 'eshell-truncate-buffer)
+
+  ;; Bind some useful keys for evil-mode
+  (evil-define-key '(normal insert visual) eshell-mode-map (kbd "C-r") 'counsel-esh-history)
+  (evil-define-key '(normal insert visual) eshell-mode-map (kbd "<home>") 'eshell-bol)
+  (evil-normalize-keymaps)
+
+  (setq eshell-history-size         10000
+        eshell-buffer-maximum-lines 10000
+        eshell-hist-ignoredups t
+        eshell-scroll-to-bottom-on-input t))
+
+(use-package eshell-git-prompt)
+
+(use-package eshell
+  :hook (eshell-first-time-mode . rfh/configure-eshell)
+  :config
+  (with-eval-after-load 'esh-opt
+    (setq eshell-destroy-buffer-when-process-dies t)
+    (setq eshell-visual-commands '("htop" "zsh" "vim")))
+
+  (eshell-git-prompt-use-theme 'powerline))
+
+(rfh/leader-keys
+  "se" '(eshell :which-key "eshell"))
+
+#+end_src
+
+*** Fish Completion
+
+#+begin_src emacs-lisp
+
+  (use-package fish-completion
+    :hook (eshell-mode . fish-completion-mode))
+
+#+end_src
+
+*** Syntax Highlighting
+
+#+begin_src emacs-lisp
+
+(use-package eshell-syntax-highlighting
+  :after esh-mode
+  :config
+  (eshell-syntax-highlighting-global-mode +1))
+
+#+end_src
+
+*** History Autocompletion
+
+#+begin_src emacs-lisp
+
+  (use-package esh-autosuggest
+    :hook (eshell-mode . esh-autosuggest-mode)
+    :config
+    (setq esh-autosuggest-delay 0.5)
+    (set-face-foreground 'company-preview-common "#4b5668")
+    (set-face-background 'company-preview nil))
+
+#+end_src
+
+*** Toggling Eshell
+
+=eshell-toggle= allows me to toggle an Eshell window below the current buffer for the path (or project path) of the buffer.
+
+#+begin_src emacs-lisp
+
+(use-package eshell-toggle
+  :bind ("C-M-'" . eshell-toggle)
+  :custom
+  (eshell-toggle-size-fraction 3)
+  (eshell-toggle-use-projectile-root t)
+  (eshell-toggle-run-command nil))
+
+#+end_src
+* Configuration Files
+
+** Helper Commands
+
+#+begin_src emacs-lisp
+
+(defun rfh/org-file-jump-to-heading (org-file heading-title)
+  (interactive)
+  (find-file (expand-file-name org-file))
+  (goto-char (point-min))
+  (search-forward (concat "* " heading-title))
+  (org-overview)
+  (org-reveal)
+  (org-show-subtree)
+  (forward-line))
+
+(defun rfh/org-file-show-headings (org-file)
+  (interactive)
+  (find-file (expand-file-name org-file))
+  (counsel-org-goto)
+  (org-overview)
+  (org-reveal)
+  (org-show-subtree)
+  (forward-line))
+
+#+end_src
+
+** Keybindings
+
+#+begin_src emacs-lisp
+
+(rfh/leader-keys
+    "fd"  '(:ignore t :which-key "edit dotfiles")
+    "fde" '((lambda () (interactive) (find-file (expand-file-name "~/dotfiles/emacs/.emacs.d/emacs.org"))) :which-key "emacs")
+    "fdE" '((lambda () (interactive) (rfh/org-file-show-headings "~/dotfiles/emacs/.emacs.d/emacs.org")) :which-key "emacs (at heading)"))
+
+#+end_src
+
+* File Management
+
+** Saving Files
+
+*** Auto-Save Changed Files
+
+#+begin_src emacs-lisp
+(use-package super-save
+  :defer 1
+  :diminish super-save-mode
+  :config
+  (super-save-mode +1)
+  (setq super-save-auto-save-when-idle t))
+#+end_src
+
+*** Auto-Revert Changed Files
+
+#+begin_src emacs-lisp
+
+(global-auto-revert-mode 1)
+
+#+end_src
+
+** Deletion Behavior
+
+#+begin_src emacs-lisp
+(setq delete-by-moving-to-trash t)
+#+end_src
+
+** Keep =.emacs.d= Clean
+
+#+begin_src emacs-lisp
+
+;; Keep transient cruft out of ~/.emacs.d/
+(setq user-emacs-directory "~/.cache/emacs/"
+      backup-directory-alist `(("." . ,(expand-file-name "backups" user-emacs-directory)))
+      url-history-file (expand-file-name "url/history" user-emacs-directory)
+      auto-save-list-file-prefix (expand-file-name "auto-save-list/.saves-" user-emacs-directory)
+      projectile-known-projects-file (expand-file-name "projectile-bookmarks.eld" user-emacs-directory))
+
+;; Keep customization settings in a temporary file (thanks Ambrevar!)
+(setq custom-file
+      (if (boundp 'server-socket-dir)
+          (expand-file-name "custom.el" server-socket-dir)
+        (expand-file-name (format "emacs-custom-%s.el" (user-uid)) temporary-file-directory)))
+(load custom-file t)
+
+#+end_src
+
+** Dired
+
+;; Taken from: https://github.com/daviwil/emacs-from-scratch/blob/8c302a79bf5700f6ef0279a3daeeb4123ae8bd59/Emacs.org#dired
+
+Dired is a built-in file manager for Emacs that does some pretty amazing things!  Here are some key bindings you should try out:
+
+*** Key Bindings
+**** Navigation
+
+*Emacs* / *Evil*
+- =n= / =j= - next line
+- =p= / =k= - previous line
+- =j= / =J= - jump to file in buffer
+- =RET= - select file or directory
+- =^= - go to parent directory
+- =S-RET= / =g O= - Open file in "other" window
+- =M-RET= - Show file in other window without focusing (previewing files)
+- =g o= (=dired-view-file=) - Open file but in a "preview" mode, close with =q=
+- =g= / =g r= Refresh the buffer with =revert-buffer= after changing configuration (and after filesystem changes!)
+
+**** Marking files
+
+- =m= - Marks a file
+- =u= - Unmarks a file
+- =U= - Unmarks all files in buffer
+- =* t= / =t= - Inverts marked files in buffer
+- =% m= - Mark files in buffer using regular expression
+- =*= - Lots of other auto-marking functions
+- =k= / =K= - "Kill" marked items (refresh buffer with =g= / =g r= to get them back)
+- Many operations can be done on a single file if there are no active marks!
+
+**** Copying and Renaming files
+
+- =C= - Copy marked files (or if no files are marked, the current file)
+- Copying single and multiple files
+- =U= - Unmark all files in buffer
+- =R= - Rename marked files, renaming multiple is a move!
+- =% R= - Rename based on regular expression: =^test= , =old-\&=
+
+*Power command*: =C-x C-q= (=dired-toggle-read-only=) - Makes all file names in the buffer editable directly to rename them!  Press =Z Z= to confirm renaming or =Z Q= to abort.
+
+**** Deleting files
+
+- =D= - Delete marked file
+- =d= - Mark file for deletion
+- =x= - Execute deletion for marks
+- =delete-by-moving-to-trash= - Move to trash instead of deleting permanently
+
+**** Creating and extracting archives
+
+- =Z= - Compress or uncompress a file or folder to (=.tar.gz=)
+- =c= - Compress selection to a specific file
+- =dired-compress-files-alist= - Bind compression commands to file extension
+
+**** Other common operations
+
+- =T= - Touch (change timestamp)
+- =M= - Change file mode
+- =O= - Change file owner
+- =G= - Change file group
+- =S= - Create a symbolic link to this file
+- =L= - Load an Emacs Lisp file into Emacs
+
+*** Configuration
+
+#+begin_src emacs-lisp
+
+  (use-package dired
+    :ensure nil
+    :commands (dired dired-jump)
+    :bind (("C-x C-j" . dired-jump))
+    :custom ((dired-listing-switches "-agho --group-directories-first"))
+    :config
+    (evil-collection-define-key 'normal 'dired-mode-map
+      "h" 'dired-single-up-directory
+      "l" 'dired-single-buffer))
+
+  (use-package dired-single)
+
+  (use-package diredfl
+    :config
+    (add-hook 'dired-mode-hook 'diredfl-global-mode))
+
+  (use-package dired-open
+    :config
+    ;; Doesn't work as expected!
+    (add-to-list 'dired-open-functions #'dired-open-xdg t)
+    ;; (setq dired-open-extensions '(("png" . "feh")
+    ;;                               ("mkv" . "vlc")))
+    )
+
+  (use-package dired-hide-dotfiles
+    :hook (dired-mode . dired-hide-dotfiles-mode)
+    :config
+    (evil-collection-define-key 'normal 'dired-mode-map
+      "H" 'dired-hide-dotfiles-mode))
+
+  (rfh/leader-keys
+  "a"  '(:ignore t :which-key "applications")
+  "ad" '(dired :which-key "dired"))
+#+end_src
+
+** Open Files Externally
+
+#+begin_src emacs-lisp
+
+  (use-package openwith
+    :config
+    (setq openwith-associations
+      (list
+        (list (openwith-make-extension-regexp
+               '("mpg" "mpeg" "mp3" "mp4"
+                 "avi" "wmv" "wav" "mov" "flv"
+                 "ogm" "ogg" "mkv"))
+               "mpv"
+               '(file))
+        (list (openwith-make-extension-regexp
+               '("xbm" "pbm" "pgm" "ppm" "pnm"
+                 "png" "gif" "bmp" "tif" "jpeg")) ;; Removed jpg because Telega was
+                                                  ;; causing feh to be opened...
+               "feh"
+               '(file))
+        (list (openwith-make-extension-regexp
+               '("pdf"))
+               "zathura"
+               '(file))))
+    (openwith-mode 1))
+
+#+end_src
+
+* Apps
+
+** TODO Mail
+
+** TODO PDF
+
+* Org-Mode Configuration
+** Basic Configuration
+
+#+begin_src emacs-lisp
+
+(defun rfh/org-mode-setup ()
+  (org-indent-mode)
+  (variable-pitch-mode 1)
+  (visual-line-mode 1))
+  
+(use-package org
+  :hook (org-mode . rfh/org-mode-setup)
+  :config
+  (setq org-ellipsis " ▾")
+  (rfh/org-font-setup))
+
+#+end_src
+
+** Aesthetics
+
+*** Better Font Faces
+
+#+begin_src emacs-lisp
+
+(defun rfh/org-font-setup ()
+  ;; Replace list hyphen with dot
+  (font-lock-add-keywords 'org-mode
+                          '(("^ *\\([-]\\) "
+                             (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
+
+  ;; Set faces for heading levels
+  (dolist (face '((org-level-1 . 1.2)
+                  (org-level-2 . 1.1)
+                  (org-level-3 . 1.05)
+                  (org-level-4 . 1.0)
+                  (org-level-5 . 1.1)
+                  (org-level-6 . 1.1)
+                  (org-level-7 . 1.1)
+                  (org-level-8 . 1.1)))
+    (set-face-attribute (car face) nil :font "Cantarell" :weight 'regular :height (cdr face)))
+
+  ;; Ensure that anything that should be fixed-pitch in Org files appears that way
+  (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
+  (set-face-attribute 'org-code nil   :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-table nil   :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
+  (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
+  (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
+  (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch))
+
+#+end_src
+
+*** Nicer Heading Bullets
+
+#+begin_src emacs-lisp
+
+(use-package org-bullets
+  :after org
+  :hook (org-mode . org-bullets-mode)
+  :custom
+  (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
+
+#+end_src
+
+*** Center Org Buffers
+
+#+begin_src emacs-lisp
+
+(defun rfh/org-mode-visual-fill ()
+  (setq visual-fill-column-width 100
+        visual-fill-column-center-text t)
+  (visual-fill-column-mode 1))
+
+(use-package visual-fill-column
+ :hook (org-mode . rfh/org-mode-visual-fill))
+
+#+end_src
+
+** TODO Capture
+** Org-Agenda
+
+Check these lines for `org-agenda' config ideas: https://github.com/daviwil/emacs-from-scratch/blob/c55d0f5e309f7ed8ffa3c00bc35c75937a5184e4/init.el#L211
+
+#+begin_src emacs-lisp
+
+(setq org-agenda-start-with-log-mode t)
+(setq org-log-done 'time)
+(setq org-log-into-drawer t)
+
+#+end_src
+** TODO Org-Roam
+** TODO Org-Noter
+** Configure Org-Babel
+*** Languages
+
+#+begin_src emacs-lisp
+
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '((emacs-lisp . t)
+   (python . t)))
+
+(push '("conf-unix" . conf-unix) org-src-lang-modes)
+
+#+end_src
+
+*** Babel-Tangle
+
+Automatically tangle =emacs.org= on save.
+
+#+begin_src emacs-lisp
+
+(defun rfh/org-babel-tangle-config ()
+  (when (string-equal (buffer-file-name)
+                      (expand-file-name "~/dotfiles/emacs/.emacs.d/emacs.org"))
+    ;; Dynamic scoping to the rescue
+    (let ((org-confirm-babel-evaluate nil))
+      (org-babel-tangle))))
+
+(add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'rfh/org-babel-tangle-config)))
+
+#+end_src
+
+** Structure Templates
+
+#+begin_src emacs-lisp
+
+(require 'org-tempo)
+
+(add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+
+#+end_src
