@@ -329,6 +329,8 @@ https://github.com/Wilfred/helpful
 
 #+end_src
 
+*** TODO Ivy-BibTeX
+
 *** Counsel
 
 #+begin_src emacs-lisp
@@ -449,6 +451,7 @@ https://github.com/Wilfred/helpful
 
   (rfh/leader-keys
     "SPC"   '(counsel-M-x :which-key "M-x")
+    "TAB"   '(evil-window-next :which-key "cycle windows")
     "f"     '(:ignore t :which-key "files")
     "ff"    '(counsel-find-file :which-key "find file")
     "fr"    '(counsel-recentf :which-key "recent files")
@@ -459,6 +462,8 @@ https://github.com/Wilfred/helpful
     "wd"    '(delete-window :which-key "delete window")
     "b"     '(:ignore t :which-key "buffers")
     "bb"    '(ivy-switch-buffer :which-key "switch buffer")
+    "bd"    '(kill-this-buffer :which-key "kill current buffer")
+    "bD"    '(kill-buffer :which-key "kill buffer")
    )
 
 #+end_src
@@ -548,6 +553,8 @@ The keybindings for this are =C+M+-= and =C+M+=.
 #+end_src
 
 ** Window Management Hydra
+
+Taken from the [[https://github.com/abo-abo/hydra/wiki/Window-Management#deluxe-window-moving][=hydra= wiki]].
 
 #+begin_src emacs-lisp
 
@@ -1186,7 +1193,7 @@ Dired is a built-in file manager for Emacs that does some pretty amazing things!
 
 *** Dired Hydra
 
-Taken from https://github.com/abo-abo/hydra/wiki/Dired#hydras
+Taken from the [[https://github.com/abo-abo/hydra/wiki/Dired#hydras][=hydra= wiki]].
 
 #+begin_src emacs-lisp
 (defhydra hydra-dired (:hint nil :color pink)

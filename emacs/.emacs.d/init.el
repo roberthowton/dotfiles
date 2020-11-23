@@ -258,6 +258,7 @@
 
 (rfh/leader-keys
   "SPC"   '(counsel-M-x :which-key "M-x")
+  "TAB"   '(evil-window-next :which-key "cycle windows")
   "f"     '(:ignore t :which-key "files")
   "ff"    '(counsel-find-file :which-key "find file")
   "fr"    '(counsel-recentf :which-key "recent files")
@@ -268,6 +269,8 @@
   "wd"    '(delete-window :which-key "delete window")
   "b"     '(:ignore t :which-key "buffers")
   "bb"    '(ivy-switch-buffer :which-key "switch buffer")
+  "bd"    '(kill-this-buffer :which-key "kill current buffer")
+  "bD"    '(kill-buffer :which-key "kill buffer")
  )
 
 (use-package avy
