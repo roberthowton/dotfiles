@@ -1,8 +1,5 @@
 ;; NOTE: `init.el' is auto-generated from `emacs.org'. Save changes to `emacs.org' to edit this file.
 
-(setq inhibit-startup-message t
-      initial-buffer-choice 'eshell)
-
 (require 'package)
 
 (setq package-archives '(
@@ -22,6 +19,81 @@
   (require 'use-package))
 
 (setq use-package-always-ensure t)
+
+(setq inhibit-startup-message t)
+
+;; required dependency
+      (use-package page-break-lines)
+
+      (use-package dashboard
+        :config
+        (dashboard-setup-startup-hook))
+
+
+      (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
+
+      ;; Set the title
+      (setq dashboard-banner-logo-title "This is Emacs")
+      ;; Set the banner
+      (setq dashboard-startup-banner 'logo)
+      ;; Value can be
+      ;; 'official which displays the official emacs logo
+      ;; 'logo which displays an alternative emacs logo
+      ;; 1, 2 or 3 which displays one of the text banners
+      ;; "path/to/your/image.png" or "path/to/your/text.txt" which displays whatever image/text you would prefer
+
+      ;; Content is not centered by default. To center, set
+      (setq dashboard-center-content t)
+
+      ;; To disable shortcut "jump" indicators for each section, set
+      ;; (setq dashboard-show-shortcuts nil)
+
+      (setq dashboard-items '((recents  . 5)
+                              (projects . 5)
+                              (agenda . 5)
+                              ))
+
+      (setq dashboard-set-heading-icons t)
+      (setq dashboard-set-file-icons t)
+
+      (setq dashboard-set-navigator t)
+
+      (setq dashboard-set-init-info t)
+
+      ;; (setq dashboard-init-info "This is an init message!")
+
+      (setq dashboard-footer-icon (all-the-icons-octicon "dashboard"
+                                                         :height 1.1
+                                                         :v-adjust -0.05
+                                                         :face 'font-lock-keyword-face))
+
+      (add-to-list 'dashboard-items '(agenda) t)
+      (setq dashboard-week-agenda t)
+
+  ;; Format: "(icon title help action face prefix suffix)"
+  ;; (setq dashboard-navigator-buttons
+  ;;       `(;; line1
+  ;;         ((,(all-the-icons-octicon "mark-github" :height 1 :v-adjust 0.0)
+  ;;          "Homepage"
+  ;;          "Browse homepage"
+  ;;          (lambda (&rest _) (browse-url "homepage")))
+  ;;         ("★" "Star" "Show stars" (lambda (&rest _) (show-stars)) warning)
+  ;;         ("?" "" "?/h" #'show-help nil "<" ">"))
+  ;;          ;; line 2
+  ;;         ((,(all-the-icons-faicon "linkedin" :height 1.1 :v-adjust 0.0)
+  ;;           "Linkedin"
+  ;;           ""
+  ;;           (lambda (&rest _) (browse-url "homepage")))
+  ;;          ("⚑" nil "Show flags" (lambda (&rest _) (message "flag")) error))))
+
+(defun rfh/switch-to-dashboard ()
+  "Jump to dashboard buffer; if it doesn't exist, create one."
+  (interactive)
+  (switch-to-buffer dashboard-buffer-name)
+  (require 'dashboard)
+  (dashboard-mode)
+  (dashboard-insert-startupify-lists)
+  (dashboard-refresh-buffer))
 
 (scroll-bar-mode -1)    ; disable visible scrollbar
 (tool-bar-mode -1)      ; disable the toolbar
@@ -106,6 +178,10 @@
 :config
 (setq which-key-idle-delay 0))
 
+(use-package which-key-posframe
+  :config
+  (which-key-posframe-mode))
+
 (use-package helpful
 :custom
 (counsel-describe-function-function #'helpful-callable)
@@ -118,6 +194,10 @@
 
 (use-package hydra
   :defer 1)
+
+(use-package hydra-posframe
+  :load-path "~/.emacs.d/local/hydra-posframe.el"
+  :hook (after-init . hydra-posframe-enable))
 
 (use-package ivy
   :diminish
@@ -165,18 +245,16 @@
   :config
   (setq ivy-format-function #'ivy-format-function-line))
 
-;; (use-package ivy-posframe
-;;   ;; :custom
-;;   ;; (ivy-posframe-width      115)
-;;   ;; (ivy-posframe-min-width  115)
-;;   ;; (ivy-posframe-height     10)
-;;   ;; (ivy-posframe-min-height 10)
-;;   ;; :config
-;;   ;; (setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display-at-frame-center)))
-;;   ;; (setq ivy-posframe-parameters '((parent-frame . nil)
-;;   ;;                                 (left-fringe . 8)
-;;   ;;                                 (right-fringe . 8)))
-;;   (ivy-posframe-mode 1))
+(use-package ivy-posframe
+:config
+;; display at `ivy-posframe-style'
+(setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display)))
+;; (setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display-at-frame-center)))
+;; (setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display-at-window-center)))
+;; (setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display-at-frame-bottom-left)))
+;; (setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display-at-window-bottom-left)))
+;; (setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display-at-frame-top-center)))
+(ivy-posframe-mode 1))
 
 (use-package counsel
   :bind (("M-x" . counsel-M-x)
@@ -267,7 +345,9 @@
   "w"     '(:ignore t :which-key "windows")
   "wq"    '(quit-window :which-key "quit window")
   "wd"    '(delete-window :which-key "delete window")
+  "wD"    '(delete-other-windows :which-key "delete other windows")
   "b"     '(:ignore t :which-key "buffers")
+  "bh"    '(rfh/switch-to-dashboard :which-key "home buffer/dashboard")
   "bb"    '(ivy-switch-buffer :which-key "switch buffer")
   "bd"    '(kill-this-buffer :which-key "kill current buffer")
   "bD"    '(kill-buffer :which-key "kill buffer")
@@ -305,6 +385,8 @@
 
 (use-package winum
   :init (winum-mode))
+
+(winum-set-keymap-prefix (kbd "C-w"))
 
 (winner-mode)
 (define-key evil-window-map "u" 'winner-undo)
@@ -501,8 +583,8 @@ _SPC_ cancel	_o_nly this   	    _d_elete
   :custom
   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
-(use-package evil-magit
-  :after magit)
+;; (use-package evil-magit
+;;   :after magit)
 
 (rfh/leader-keys
   "g"   '(:ignore t :which-key "git")
@@ -661,7 +743,8 @@ _SPC_ cancel	_o_nly this   	    _d_elete
   :config
   ;; Doesn't work as expected!
   ;; (add-to-list 'dired-open-functions #'dired-open-xdg t)
-  (setq dired-open-extensions '(("png" . "feh")
+  (setq dired-open-extensions '(
+                                ;; ("png" . "feh")
                                 ("mkv" . "vlc")))
   )
 
@@ -682,7 +765,7 @@ _C_opy             _O_ view other   _U_nmark all       _)_ omit-mode      _$_ hi
 _D_elete           _o_pen other     _u_nmark           _l_ redisplay      _w_ kill-subdir    C-c C-c : commit
 _R_ename           _M_ chmod        _t_oggle           _g_ revert buf     _e_ ediff          C-c ESC : abort
 _Y_ rel symlink    _G_ chgrp        _E_xtension mark   _s_ort             _=_ pdiff
-_S_ymlink          ^ ^              _F_ind marked      _._ toggle hydra   \\ flyspell
+_S_ymlink          ^ ^              _F_ind marked      _TAB_ toggle hydra   \\ flyspell
 _r_sync            ^ ^              ^ ^                ^ ^                _?_ summary
 _z_ compress-file  _A_ find regexp
 _Z_ compress       _Q_ repl regexp
@@ -724,31 +807,31 @@ T - tag prefix
   ("z" diredp-compress-this-file)
   ("Z" dired-do-compress)
   ("q" nil)
-  ("." nil :color blue))
+  ("TAB" nil :color blue))
 
 (define-key dired-mode-map (kbd "<tab>") 'hydra-dired/body)
 
-(use-package openwith
-  :config
-  (setq openwith-associations
-    (list
-      (list (openwith-make-extension-regexp
-             '("mpg" "mpeg" "mp3" "mp4"
-               "avi" "wmv" "wav" "mov" "flv"
-               "ogm" "ogg" "mkv"))
-             "mpv"
-             '(file))
-      (list (openwith-make-extension-regexp
-             '("xbm" "pbm" "pgm" "ppm" "pnm"
-               "png" "gif" "bmp" "tif" "jpeg")) ;; Removed jpg because Telega was
-                                                ;; causing feh to be opened...
-             "feh"
-             '(file))
-      (list (openwith-make-extension-regexp
-             '("pdf"))
-             "zathura"
-             '(file))))
-  (openwith-mode 1))
+;; (use-package openwith
+;;   :config
+;;   (setq openwith-associations
+;;     (list
+;;       (list (openwith-make-extension-regexp
+;;              '("mpg" "mpeg" "mp3" "mp4"
+;;                "avi" "wmv" "wav" "mov" "flv"
+;;                "ogm" "ogg" "mkv"))
+;;              "mpv"
+;;              '(file))
+;;       (list (openwith-make-extension-regexp
+;;              '("xbm" "pbm" "pgm" "ppm" "pnm"
+;;                "png" "gif" "bmp" "tif" "jpeg")) ;; Removed jpg because Telega was
+;;                                                 ;; causing feh to be opened...
+;;              "feh"
+;;              '(file))
+;;       (list (openwith-make-extension-regexp
+;;              '("pdf"))
+;;              "zathura"
+;;              '(file))))
+;;   (openwith-mode 1))
 
 (defun sudo-find-file (file)
     "Opens FILE with root privileges."
@@ -766,17 +849,6 @@ T - tag prefix
     (setq end (car (cdr (split-string file "@"))))
     (set-buffer
      (find-file (format "%s" (concat begin "|sudo:root@" end)))))
-
-(defun rfh/org-mode-setup ()
-  (org-indent-mode)
-  (variable-pitch-mode 1)
-  (visual-line-mode 1))
-  
-(use-package org
-  :hook (org-mode . rfh/org-mode-setup)
-  :config
-  (setq org-ellipsis " ▾")
-  (rfh/org-font-setup))
 
 (defun rfh/org-font-setup ()
   ;; Replace list hyphen with dot
@@ -804,6 +876,22 @@ T - tag prefix
   (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
   (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch))
 
+(defun rfh/org-mode-setup ()
+  (org-indent-mode)
+  (variable-pitch-mode 1)
+  (visual-line-mode 1))
+
+
+
+(use-package org
+  :hook (org-mode . rfh/org-mode-setup)
+  :config
+  (setq org-ellipsis " ▾")
+  (rfh/org-font-setup))
+
+(rfh/leader-keys
+"o" '(:ignore t :which-key "org-mode"))
+
 (use-package org-bullets
   :after org
   :hook (org-mode . org-bullets-mode)
@@ -821,6 +909,49 @@ T - tag prefix
 (setq org-agenda-start-with-log-mode t)
 (setq org-log-done 'time)
 (setq org-log-into-drawer t)
+
+(use-package org-tree-slide
+  :custom
+  (org-image-actual-width nil))
+
+(use-package hide-mode-line)
+
+(defun rfh/presentation-setup ()
+  ;; Hide the mode line
+  (hide-mode-line-mode 1)
+
+  ;; Display images inline
+  (org-display-inline-images) ;; Can also use org-startup-with-inline-images
+
+  ;; Scale the text.  The next line is for basic scaling:
+  (setq text-scale-mode-amount 3)
+  (text-scale-mode 1))
+
+  ;; This option is more advanced, allows you to scale other faces too
+  ;; (setq-local face-remapping-alist '((default (:height 2.0) variable-pitch)
+  ;;                                    (org-verbatim (:height 1.75) org-verbatim)
+  ;;                                    (org-block (:height 1.25) org-block))))
+
+(defun rfh/presentation-end ()
+  ;; Show the mode line again
+  (hide-mode-line-mode 0)
+
+  ;; Turn off text scale mode (or use the next line if you didn't use text-scale-mode)
+  (text-scale-mode 0))
+
+  ;; ;; If you use face-remapping-alist, this clears the scaling:
+  ;; (setq-local face-remapping-alist '((default variable-pitch default))))
+
+(use-package org-tree-slide
+  :hook ((org-tree-slide-play . rfh/presentation-setup)
+         (org-tree-slide-stop . rfh/presentation-end))
+  :custom
+  (org-tree-slide-slide-in-effect t)
+  (org-tree-slide-activate-message "Presentation started!")
+  (org-tree-slide-deactivate-message "Presentation finished!")
+  (org-tree-slide-header t)
+  (org-tree-slide-breadcrumbs " > ")
+  (org-image-actual-width nil))
 
 (org-babel-do-load-languages
  'org-babel-load-languages
