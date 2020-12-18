@@ -8,19 +8,36 @@
 This file generates [[file:init.el][init.el]] which can be loaded by Emacs at startup.
 
 #+begin_src emacs-lisp
+;; -*- mode: emacs-lisp; lexical-binding: t -*-
+;;
 ;; NOTE: `init.el' is auto-generated from `emacs.org'. Save changes to `emacs.org' to edit this file.
 #+end_src
 
-** TODO List [1/5]
+** TODO List [2/12]
 
  - [-] Configure =company=
    - [ ] install backends
    - [X] =company-box=
  - [X] =M-x= to SPC SPC
- - [ ] Hydra for window/buffer switching
+ - [X] Hydra for window/buffer switching
  - [ ] Populate leader key bindings
  - [ ] Set up GPG private key support
    - [ ] Including =epa-pinetry-mode=
+ - [ ] `tab-bar-mode'
+   - [ ] Keybindings
+   - [ ] Default tabs
+ - [ ] Spell checking
+ - [ ] Dashboard icons
+   - [ ] Mail
+   - [ ] Agenda
+   - [ ] Calendar
+ - [ ] ox-pandoc
+ - [ ] LaTeX
+ - [ ] pdf-tools
+ - [ ] mail
+   - [ ] mu4e
+   - [ ] org-msg
+   - [ ] offline imap
 
 * Package Managment
 ** Initialize Package Sources
@@ -173,13 +190,13 @@ https://github.com/emacs-dashboard/emacs-dashboard
 (defvar rfh/default-font-size 140)
 (defvar rfh/default-variable-font-size 140)
 
-(set-face-attribute 'default nil :font "Liberation Mono" :height rfh/default-font-size)
+(set-face-attribute 'default nil :font "Fira Code" :height rfh/default-font-size)
 
 ;; Set the fixed pitch face
-(set-face-attribute 'fixed-pitch nil :font "Liberation Mono" :height rfh/default-font-size)
+(set-face-attribute 'fixed-pitch nil :font "Fira Code" :height rfh/default-font-size)
 
 ;; Set the variable pitch face
-(set-face-attribute 'variable-pitch nil :font "Cantarell" :height rfh/default-font-size :weight 'regular)
+(set-face-attribute 'variable-pitch nil :font "Fira Sans" :height rfh/default-font-size :weight 'regular)
 
 #+end_src
 
@@ -290,15 +307,15 @@ https://github.com/justbur/emacs-which-key
 
 #+begin_src emacs-lisp
 
-(use-package which-key
-:init (which-key-mode)
-:diminish which-key-mode
-:config
-(setq which-key-idle-delay 0))
-
-(use-package which-key-posframe
+  (use-package which-key
+  :init (which-key-mode)
+  :diminish which-key-mode
   :config
-  (which-key-posframe-mode))
+  (setq which-key-idle-delay 0))
+
+  ;; (use-package which-key-posframe
+  ;;   :config
+  ;;   (which-key-posframe-mode))
 
 #+end_src
 
@@ -324,12 +341,12 @@ https://github.com/Wilfred/helpful
 
 #+begin_src emacs-lisp
 
-(use-package hydra
-  :defer 1)
+  (use-package hydra
+    :defer 1)
 
-(use-package hydra-posframe
-  :load-path "~/.emacs.d/local/hydra-posframe.el"
-  :hook (after-init . hydra-posframe-enable))
+  ;; (use-package hydra-posframe
+  ;;   :load-path "~/.emacs.d/local/hydra-posframe.el"
+  ;;   :hook (after-init . hydra-posframe-enable))
 
 #+end_src
 
@@ -402,16 +419,16 @@ https://github.com/Wilfred/helpful
 
 #+begin_src emacs-lisp
 
-(use-package ivy-posframe
-:config
-;; display at `ivy-posframe-style'
-(setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display)))
-;; (setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display-at-frame-center)))
-;; (setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display-at-window-center)))
-;; (setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display-at-frame-bottom-left)))
-;; (setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display-at-window-bottom-left)))
-;; (setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display-at-frame-top-center)))
-(ivy-posframe-mode 1))
+  ;; (use-package ivy-posframe
+  ;; :config
+  ;; ;; display at `ivy-posframe-style'
+  ;; (setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display)))
+  ;; ;; (setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display-at-frame-center)))
+  ;; ;; (setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display-at-window-center)))
+  ;; ;; (setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display-at-frame-bottom-left)))
+  ;; ;; (setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display-at-window-bottom-left)))
+  ;; ;; (setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display-at-frame-top-center)))
+  ;; (ivy-posframe-mode 1))
 
 #+end_src
 
@@ -512,8 +529,8 @@ https://github.com/Wilfred/helpful
 #+begin_src emacs-lisp
 
   (rfh/leader-keys
-    "t"  '(:ignore t :which-key "toggles")
-    "tt" '(counsel-load-theme :which-key "choose theme"))
+    "T"  '(:ignore t :which-key "toggles")
+    "Tt" '(counsel-load-theme :which-key "choose theme"))
 
 #+end_src
 **** Text-Scaling
@@ -527,7 +544,7 @@ https://github.com/Wilfred/helpful
   ("f" nil "finished" :exit t))
 
 (rfh/leader-keys
-  "ts" '(hydra-text-scale/body :which-key "scale text"))
+  "Ts" '(hydra-text-scale/body :which-key "scale text"))
 
 #+end_src
 
@@ -1398,8 +1415,14 @@ T - tag prefix
 ** TODO Mail
 
 ** TODO PDF
+** TODO \LaTeX{}
 
 * Org-Mode Configuration
+
+#+begin_src emacs-lisp
+(with-eval-after-load 'org
+#+end_src
+
 ** Better Font Faces
 
 #+begin_src emacs-lisp
@@ -1441,8 +1464,6 @@ T - tag prefix
   (variable-pitch-mode 1)
   (visual-line-mode 1))
 
-
-
 (use-package org
   :hook (org-mode . rfh/org-mode-setup)
   :config
@@ -1451,6 +1472,24 @@ T - tag prefix
 
 (rfh/leader-keys
 "o" '(:ignore t :which-key "org-mode"))
+
+(setq org-directory "~/projects/org")
+
+(setq org-default-notes-file (concat org-directory "/notes.org"))
+
+(setq org-todo-keywords
+        '((sequence "TODO(t)" "WAITING(w)" "|" "DONE(D)" "CANCELLED(C)")
+         (sequence "BUY(b)" "|" "BOUGHT(B)")
+         (sequence "MEET(m)" "|" "MET(M)" "POSTPONED(P)"))
+         )
+
+#+end_src
+
+** Export Settings
+
+#+begin_src emacs-lisp
+
+(setq org-export-with-smart-quotes t)
 
 #+end_src
 
@@ -1481,8 +1520,114 @@ T - tag prefix
  :hook (org-mode . rfh/org-mode-visual-fill))
 
 #+end_src
+** Org-Protocol
 
-** TODO Capture
+#+begin_src emacs-lisp
+
+ (require 'org-protocol)
+  (add-to-list 'org-modules 'org-protocol)
+  (setq org-protocol-default-template-key "p")
+
+#+end_src
+
+** Capture
+
+#+begin_src emacs-lisp
+
+(setq org-capture-templates
+        '(("n" "Capture note")
+          ("ns" "Capture simple note" entry
+           (file+headline "notes.org" "Needs Review")
+           "* %? %^G\n :PROPERTIES:\n :CAPTURED: %U\n :END:\n\n")
+          ("nc" "Capture note with clipboard" entry
+           (file+headline "notes.org" "Needs Review")
+           "* %? %^G\n :PROPERTIES:\n :CAPTURED: %U\n :END:\n\n %x")
+          ("t" "Capture task")
+          ("ts" "Capture simple task" entry
+           (file+headline "tasks.org" "Quick Tasks")
+           "* TODO %? %^G\n :PROPERTIES:\n :CAPTURED: %U\n :END:\n\n")
+          ("tc" "Capture task with clipboard" entry
+           (file+headline "tasks.org" "Quick Tasks")
+           "* TODO %? %^G\n :PROPERTIES:\n :CAPTURED: %U\n :END:\n\n %x")
+          ;; ("T" "Schedule task")
+          ("tt" "Schedule task due today" entry
+           (file+headline "tasks.org" "Scheduled Tasks")
+           "* TODO %? %^G\n :PROPERTIES:\n :DEADLINE: %t\n :CAPTURED: %U\n :END:\n\n")
+          ("tl" "Schedule task due later than today" entry
+           (file+headline "tasks.org" "Scheduled Tasks")
+           "* TODO %? %^G\n :PROPERTIES:\n :DEADLINE: %^T\n :CAPTURED: %U\n :END:\n\n")
+          ("m" "Schedule meeting")
+          ("me" "Schedule event or conference" entry
+           (file+headline "meetings.org" "Events and Conferences")
+           "* MEET for %^{Title of or conference} %^G\n :PROPERTIES:\n :SCHEDULED: %^t\n :CAPTURED: %U\n :END:\n\n %?")
+          ("mm" "Schedule meeting" entry
+           (file+headline "meetings.org" "Meetings")
+           "* MEET on %^{Topic of meeting?} %^G\n :PROPERTIES:\n :SCHEDULED: %^T\n :CAPTURED: %U\n :END:\n\n %?")
+          ("mw" "Schedule work appointment" entry
+           (file+headline "meetings.org" "Work Appointments")
+           "* MEET with %^{Meeting with whom?} %^G\n :PROPERTIES:\n :SCHEDULED: %^T\n :CAPTURED: %U\n :END:\n\n %?")
+          ("mp" "Schedule personal appointment" entry
+           (file+headline "meetings.org" "Personal Appointments")
+           "* MEET with %^{Meeting with whom?} %^G\n :PROPERTIES:\n :SCHEDULED: %^T\n :CAPTURED: %U\n :END:\n\n %?")
+          ("s" "Add to shopping list")
+          ("sn" "Need to buy")
+          ("sng" "Groceries" entry
+           (file+headline "shopping.org" "Groceries, Etc.")
+           "* BUY %^{What do you need?} %^G\n :PROPERTIES:\n :CAPTURED: %U\n :END:\n\n %?")
+          ("sno" "Other necessary items" entry
+           (file+headline "shopping.org" "Other Needs")
+           "* BUY %^{What do you need?} %^G\n :PROPERTIES:\n :CAPTURED: %U\n :END:\n\n %?")
+          ("sw" "Want to buy"
+            (file+headline "shopping.org" "Wants")
+            "* BUY %^{What do you want?} %^G\n :PROPERTIES:\n :CAPTURED: %U\n :END:\n\n %?")
+          ("sg" "Gift"
+           (file+headline "shopping.org" "Gifts")
+           "* BUY %^{What do you want to give?} for %^{For whom?} %^G\n :PROPERTIES:\n :CAPTURED: %U\n :END:\n\n %?")
+          ("e" "Email capture")
+          ("et" "Capture mail task" entry
+           (file+headline "tasks.org" "Mail-Oriented Tasks")
+           "* TODO %:subject %^G:mail:\n SCHEDULED: %t\n :PROPERTIES:\n :CONTEXT: %a\n :END:\n\n %i %?")
+          ("en" "Capture mail note" entry
+           (file+headline "notes.org" "Needs Review")
+           "* %:subject %^G:mail:\n :PROPERTIES:\n :CONTEXT: %a\n :END:\n\n %i %?")
+          ("em" "Capture mail meeting" entry
+           (file+headline "meetings.org" "Refile")
+           "* MEET with %^{Meeting with whom?} on %^{Topic of meeting?} %:subject %^G:mail:\n SCHEDULED: %t\n :PROPERTIES:\n :CONTEXT: %a\n :END:\n\n %i %?")
+          ("a" "Create Anki flashcard")
+          ("ar" "Create Basic (and reversed card) flashcard" entry
+           (file+headline "anki.org" "Turkish")
+           "*** Item %^g\n :PROPERTIES:\n :ANKI_NOTE_TYPE: Basic (and reversed card)\n :END:\n\n **** Front\n\n %^{What is the expression?}\n\n **** Back\n\n %^{What does it mean?}\n\n"
+           )
+          ("p" "Protocol" entry
+           (file+headline "notes.org" "Needs Review")
+           "* %^{Title}\nSource: %u, %c\n #+BEGIN_QUOTE\n%i\n#+END_QUOTE\n\n\n%?")
+	        ("L" "Protocol Link" entry
+           (file+headline "notes.org" "Needs Review")
+           "* %? [[%:link][%:description]] \nCaptured On: %U")
+         )
+        )
+  (setq org-capture-templates-contexts
+        '(("e" ((in-mode . "mu4e-headers-mode")
+                (in-mode . "mu4e-view-mode")))))
+
+#+end_src
+
+** Org-Refile Config
+
+#+begin_src emacs-lisp
+(setq org-refile-targets '(("anki.org" :maxlevel . 2)
+                          ("meetings.org" :maxlevel . 1)
+                          ("notes.org" :maxlevel . 2)
+                          ("tasks.org" :maxlevel . 2)
+                          ("schedule.org" :maxlevel . 2)
+                          ("shopping.org" :maxlevel . 2)
+                          ;; (nil :maxlevel . 9)
+                          ;; (org-agenda-files :maxlevel . 9)
+                          ))
+(setq org-outline-path-complete-in-steps nil)         ; Refile in a single go
+(setq org-refile-use-outline-path t)                  ; Show full paths for refiling
+#+end_src
+
 ** Org-Agenda
 
 Check these lines for `org-agenda' config ideas: https://github.com/daviwil/emacs-from-scratch/blob/c55d0f5e309f7ed8ffa3c00bc35c75937a5184e4/init.el#L211
@@ -1492,6 +1637,11 @@ Check these lines for `org-agenda' config ideas: https://github.com/daviwil/emac
 (setq org-agenda-start-with-log-mode t)
 (setq org-log-done 'time)
 (setq org-log-into-drawer t)
+(setq org-agenda-include-all-todo t)
+(setq org-agenda-files '("~/projects/org/notes.org"
+                         "~/projects/org/tasks.org"
+                         "~/projects/org/meetings.org"
+                         "~/projects/org/shopping.org"))
 
 #+end_src
 ** TODO Org-Roam
@@ -1583,5 +1733,13 @@ Automatically tangle =emacs.org= on save.
 (require 'org-tempo)
 
 (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+
+#+end_src
+
+** Close =eval-after-load=
+
+#+begin_src emacs-lisp
+
+)
 
 #+end_src
