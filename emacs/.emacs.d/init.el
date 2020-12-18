@@ -122,10 +122,10 @@
   :hook (erc-mode . emojify-mode)
   :commands emojify-mode)
 
-(load-theme 'modus-vivendi t)
+;; (load-theme 'gruvbox-dark-hard t)
 
-;; (use-package doom-theme
-;;   :init (load-theme 'doom-dracula t))
+(use-package doom-themes
+  :init (load-theme 'doom-gruvbox t))
 
 ;; (use-package 'modus-vivendi-theme
 ;; :init (load-theme 'modus-vivendi-theme t)
@@ -258,6 +258,11 @@
 ;; ;; (setq ivy-posframe-display-functions-alist '((t . ivy-posframe-display-at-frame-top-center)))
 ;; (ivy-posframe-mode 1))
 
+(use-package ivy-bibtex
+ :config
+ (setq bibtex-completion-bibliography-path '("~/Documents/Library/library.bib"))
+ (setq bibtex-completion-library-path '("~/Documents/Library/")))
+
 (use-package counsel
   :bind (("M-x" . counsel-M-x)
          ("C-x b" . counsel-ibuffer)
@@ -353,6 +358,7 @@
   "bb"    '(ivy-switch-buffer :which-key "switch buffer")
   "bd"    '(kill-this-buffer :which-key "kill current buffer")
   "bD"    '(kill-buffer :which-key "kill buffer")
+  "B"     '(ivy-bibtex :which-key "bibliography")
  )
 
 (use-package avy
@@ -852,6 +858,91 @@ T - tag prefix
     (set-buffer
      (find-file (format "%s" (concat begin "|sudo:root@" end)))))
 
+(use-package olivetti
+  :ensure
+  :defer
+  :diminish
+  :config
+  (setq olivetti-body-width 0.8)
+  (setq olivetti-minimum-body-width 72)
+  (setq olivetti-recall-visual-line-mode-entry-state t)
+
+;;   (define-minor-mode rfh/olivetti-mode
+;;     "Toggle buffer-local `olivetti-mode' with additional parameters.
+;; Fringes are disabled.  The default typeface is set to a proportionately-spaced family.
+;; The cursor becomes a blinking bar, per `rfh/cursor-type-mode', and centered, per `rfh/scroll-center-cursor-mode'. Line numbers and line highlighting suppressed."
+;;     :init-value nil
+;;     :global nil
+;;     (if rfh/olivetti-mode
+;;         (progn
+;;           (olivetti-mode 1)
+;;           ;; (focus-mode 1)
+;;           (setq-local line-spacing 0.25)
+;;           (text-scale-increase 1)
+;;           (set-window-fringes (selected-window) 0 0)
+;;           (variable-pitch-mode 1)
+;;           (rfh/cursor-type-mode 1)
+;;           (rfh/scroll-center-cursor-mode 1)
+;;           )
+;;       (olivetti-mode -1)
+;;       (setq-local line-spacing nil)
+;;       (set-window-fringes (selected-window) nil) ; Use default width
+;;       ;; (focus-mode nil)
+;;       (text-scale-decrease 1)
+;;       (variable-pitch-mode -1)
+;;       (rfh/cursor-type-mode -1)
+;;       (rfh/scroll-center-cursor-mode -1)
+;;       )
+;;     )
+;;   )
+
+;; (use-package emacs
+;;   :config
+;;   (setq-default scroll-preserve-screen-position t)
+;;   (setq-default scroll-conservatively 1) ; affects `scroll-step'
+;;   (setq-default scroll-margin 0)
+
+;;   (define-minor-mode rfh/scroll-center-cursor-mode
+;;     "Toggle centered cursor scrolling behavior."
+;;     :init-value nil
+;;     :lighter " S="
+;;     :global nil
+;;     (if rfh/scroll-center-cursor-mode
+;;         (setq-local scroll-margin (* (frame-height) 2)
+;;                     scroll-conservatively 0
+;;                     maximum-scroll-margin 0.5)
+;;       (dolist (local '(scroll-preserve-screen-position
+;;                        scroll-conservatively
+;;                        maximum-scroll-margin
+;;                        scroll-margin))
+;;         (kill-local-variable `,local))))
+
+;;   :bind-keymap ("C-c r" . rfh/scroll-Center-Cursor-mode)
+;;   )
+
+;; ;; (spacemacs/set-leader-keys "or" 'rfh/s
+croll-center-cursor-mode)
+
+(use-package pandoc-mode
+ :defer t)
+
+(use-package ox-pandoc
+ :config
+ ;; (org-pandoc-options-for-latex-pdf '((pdf-engine . "xelatex")))
+)
+
+(use-package pdf-tools)
+
+(use-package deft
+ :config
+ (setq deft-file-limit 30)
+ (setq deft-recursive t)
+ (setq deft-extensions '("txt" "tex" "org" "md"))
+ (setq deft-directory "~/projects/org"))
+
+(rfh/leader-keys
+ "d" '(deft :which-key "deft"))
+
 (with-eval-after-load 'org
 
 (defun rfh/org-font-setup ()
@@ -1020,6 +1111,11 @@ T - tag prefix
                          "~/projects/org/tasks.org"
                          "~/projects/org/meetings.org"
                          "~/projects/org/shopping.org"))
+
+(use-package org-rich-yank
+  :demand t)
+
+(use-package org-re-reveal)
 
 (use-package org-tree-slide
   :custom
