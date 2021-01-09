@@ -22,80 +22,11 @@
 
 (setq use-package-always-ensure t)
 
+(if (daemonp)
+    (message "Loading in the daemon!")
+    (message "Loading standalone!"))
+
 (setq inhibit-startup-message t)
-
-;; required dependency
-      (use-package page-break-lines)
-
-      (use-package dashboard
-        :config
-        (dashboard-setup-startup-hook))
-
-
-      (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
-
-      ;; Set the title
-      (setq dashboard-banner-logo-title "This is Emacs")
-      ;; Set the banner
-      (setq dashboard-startup-banner 'logo)
-      ;; Value can be
-      ;; 'official which displays the official emacs logo
-      ;; 'logo which displays an alternative emacs logo
-      ;; 1, 2 or 3 which displays one of the text banners
-      ;; "path/to/your/image.png" or "path/to/your/text.txt" which displays whatever image/text you would prefer
-
-      ;; Content is not centered by default. To center, set
-      (setq dashboard-center-content t)
-
-      ;; To disable shortcut "jump" indicators for each section, set
-      ;; (setq dashboard-show-shortcuts nil)
-
-      (setq dashboard-items '((recents  . 5)
-                              (projects . 5)
-                              (agenda . 5)
-                              ))
-
-      (setq dashboard-set-heading-icons t)
-      (setq dashboard-set-file-icons t)
-
-      (setq dashboard-set-navigator t)
-
-      (setq dashboard-set-init-info t)
-
-      ;; (setq dashboard-init-info "This is an init message!")
-
-      (setq dashboard-footer-icon (all-the-icons-octicon "dashboard"
-                                                         :height 1.1
-                                                         :v-adjust -0.05
-                                                         :face 'font-lock-keyword-face))
-
-      (add-to-list 'dashboard-items '(agenda) t)
-      (setq dashboard-week-agenda t)
-
-  ;; Format: "(icon title help action face prefix suffix)"
-  ;; (setq dashboard-navigator-buttons
-  ;;       `(;; line1
-  ;;         ((,(all-the-icons-octicon "mark-github" :height 1 :v-adjust 0.0)
-  ;;          "Homepage"
-  ;;          "Browse homepage"
-  ;;          (lambda (&rest _) (browse-url "homepage")))
-  ;;         ("★" "Star" "Show stars" (lambda (&rest _) (show-stars)) warning)
-  ;;         ("?" "" "?/h" #'show-help nil "<" ">"))
-  ;;          ;; line 2
-  ;;         ((,(all-the-icons-faicon "linkedin" :height 1.1 :v-adjust 0.0)
-  ;;           "Linkedin"
-  ;;           ""
-  ;;           (lambda (&rest _) (browse-url "homepage")))
-  ;;          ("⚑" nil "Show flags" (lambda (&rest _) (message "flag")) error))))
-
-(defun rfh/switch-to-dashboard ()
-  "Jump to dashboard buffer; if it doesn't exist, create one."
-  (interactive)
-  (switch-to-buffer dashboard-buffer-name)
-  (require 'dashboard)
-  (dashboard-mode)
-  (dashboard-insert-startupify-lists)
-  (dashboard-refresh-buffer))
 
 (scroll-bar-mode -1)    ; disable visible scrollbar
 (tool-bar-mode -1)      ; disable the toolbar
@@ -261,7 +192,20 @@
 (use-package ivy-bibtex
  :config
  (setq bibtex-completion-bibliography-path '("~/Documents/Library/library.bib"))
- (setq bibtex-completion-library-path '("~/Documents/Library/")))
+ (setq bibtex-completion-library-path '("~/Documents/Library/"))
+ (setq bibtex-dialect 'biblatex)
+)
+
+(autoload 'ivy-bibtex "ivy-bibtex" "" t)
+;; ivy-bibtex requires ivy's `ivy--regex-ignore-order` regex builder, which
+;; ignores the order of regexp tokens when searching for matching candidates.
+;; Add something like this to your init file:
+(setq ivy-re-builders-alist
+      '((ivy-bibtex . ivy--regex-ignore-order)
+        (t . ivy--regex-plus)))
+
+(advice-add 'bibtex-completion-candidates
+            :filter-return 'reverse)
 
 (use-package counsel
   :bind (("M-x" . counsel-M-x)
@@ -472,6 +416,79 @@ _SPC_ cancel	_o_nly this   	    _d_elete
 (use-package visual-fill-column
   :defer t
   :hook (org-mode . rfh/org-mode-visual-fill))
+
+;; required dependency
+      (use-package page-break-lines)
+
+      (use-package dashboard
+        :config
+        (dashboard-setup-startup-hook))
+
+
+      (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
+
+      ;; Set the title
+      (setq dashboard-banner-logo-title "This is Emacs")
+      ;; Set the banner
+      (setq dashboard-startup-banner 'logo)
+      ;; Value can be
+      ;; 'official which displays the official emacs logo
+      ;; 'logo which displays an alternative emacs logo
+      ;; 1, 2 or 3 which displays one of the text banners
+      ;; "path/to/your/image.png" or "path/to/your/text.txt" which displays whatever image/text you would prefer
+
+      ;; Content is not centered by default. To center, set
+      (setq dashboard-center-content t)
+
+      ;; To disable shortcut "jump" indicators for each section, set
+      ;; (setq dashboard-show-shortcuts nil)
+
+      (setq dashboard-items '((recents  . 5)
+                              (projects . 5)
+                              (agenda . 5)
+                              ))
+
+      (setq dashboard-set-heading-icons t)
+      (setq dashboard-set-file-icons t)
+
+      (setq dashboard-set-navigator t)
+
+      (setq dashboard-set-init-info t)
+
+      ;; (setq dashboard-init-info "This is an init message!")
+
+      (setq dashboard-footer-icon (all-the-icons-octicon "dashboard"
+                                                         :height 1.1
+                                                         :v-adjust -0.05
+                                                         :face 'font-lock-keyword-face))
+
+      (add-to-list 'dashboard-items '(agenda) t)
+      (setq dashboard-week-agenda t)
+
+  ;; Format: "(icon title help action face prefix suffix)"
+  ;; (setq dashboard-navigator-buttons
+  ;;       `(;; line1
+  ;;         ((,(all-the-icons-octicon "mark-github" :height 1 :v-adjust 0.0)
+  ;;          "Homepage"
+  ;;          "Browse homepage"
+  ;;          (lambda (&rest _) (browse-url "homepage")))
+  ;;         ("★" "Star" "Show stars" (lambda (&rest _) (show-stars)) warning)
+  ;;         ("?" "" "?/h" #'show-help nil "<" ">"))
+  ;;          ;; line 2
+  ;;         ((,(all-the-icons-faicon "linkedin" :height 1.1 :v-adjust 0.0)
+  ;;           "Linkedin"
+  ;;           ""
+  ;;           (lambda (&rest _) (browse-url "homepage")))
+  ;;          ("⚑" nil "Show flags" (lambda (&rest _) (message "flag")) error))))
+
+(defun rfh/switch-to-dashboard ()
+  "Jump to dashboard buffer; if it doesn't exist, create one."
+  (interactive)
+  (switch-to-buffer dashboard-buffer-name)
+  (require 'dashboard)
+  (dashboard-mode)
+  (dashboard-insert-startupify-lists)
+  (dashboard-refresh-buffer))
 
 (setq-default tab-width 2)
 (setq-default evil-shift-width tab-width)
@@ -865,7 +882,7 @@ T - tag prefix
   :config
   (setq olivetti-body-width 0.8)
   (setq olivetti-minimum-body-width 72)
-  (setq olivetti-recall-visual-line-mode-entry-state t)
+  (setq olivetti-recall-visual-line-mode-entry-state t))
 
 ;;   (define-minor-mode rfh/olivetti-mode
 ;;     "Toggle buffer-local `olivetti-mode' with additional parameters.
@@ -920,8 +937,7 @@ T - tag prefix
 ;;   :bind-keymap ("C-c r" . rfh/scroll-Center-Cursor-mode)
 ;;   )
 
-;; ;; (spacemacs/set-leader-keys "or" 'rfh/s
-croll-center-cursor-mode)
+;; ;; (spacemacs/set-leader-keys "or" 'rfh/scroll-center-cursor-mode)
 
 (use-package pandoc-mode
  :defer t)
@@ -1114,6 +1130,29 @@ croll-center-cursor-mode)
 
 (use-package org-rich-yank
   :demand t)
+
+(use-package org-roam
+     :hook
+     (after-init . org-roam-mode)
+     :custom
+     (org-roam-directory "~/projects/org/"))
+
+(use-package org-noter
+    :after (:any org pdf-view)
+    :config
+    (setq
+     ;; The WM can handle splits
+     ;; org-noter-notes-window-location 'other-frame
+     ;; Please stop opening frames
+     org-noter-always-create-frame nil
+     ;; I want to see the whole file
+     org-noter-hide-other nil
+     ;; Everything is relative to the main notes file
+     ;; org-noter-notes-search-path (list org_notes)
+     org-noter-notes-search-path '("~/projects/org/annotations/")
+     org-noter-auto-save-last-location t
+     org-noter-separate-notes-from-heading t)
+    )
 
 (use-package org-re-reveal)
 
