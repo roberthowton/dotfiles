@@ -264,8 +264,7 @@
   (evil-global-set-key 'motion "j" 'evil-next-visual-line)
   (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
 
-  (evil-set-initial-state 'messages-buffer-mode 'normal)
-  (evil-set-initial-state 'dashboard-mode 'normal)) 
+  (evil-set-initial-state 'messages-buffer-mode 'normal))
 
 (use-package evil-collection
   :after evil
@@ -298,7 +297,6 @@
   "wd"    '(delete-window :which-key "delete window")
   "wD"    '(delete-other-windows :which-key "delete other windows")
   "b"     '(:ignore t :which-key "buffers")
-  "bh"    '(rfh/switch-to-dashboard :which-key "home buffer/dashboard")
   "bb"    '(ivy-switch-buffer :which-key "switch buffer")
   "bd"    '(kill-this-buffer :which-key "kill current buffer")
   "bD"    '(kill-buffer :which-key "kill buffer")
@@ -418,77 +416,46 @@ _SPC_ cancel	_o_nly this   	    _d_elete
   :hook (org-mode . rfh/org-mode-visual-fill))
 
 ;; required dependency
-      (use-package page-break-lines)
+      (use-package page-break-lines
+        :init
+        (global-page-break-lines-mode))
 
       (use-package dashboard
+        :init
+        (dashboard-setup-startup-hook)
+        (dashboard-insert-startupify-lists)
         :config
-        (dashboard-setup-startup-hook))
+        (setq dashboard-items '(
+              (recents . 5)
+              (projects . 5)
+              ))
 
+        (setq dashboard-set-heading-icons t)
+        (setq dashboard-set-file-icons t)
+        (setq dashboard-set-navigator t)
+        (setq dashboard-set-init-info t)
+        (setq dashboard-banner-logo-title "")
+        (setq dashboard-center-content t)
+        (add-to-list 'dashboard-items '(agenda) t)
+        (setq dashboard-week-agenda t)
+        (setq dashboard-set-footer nil)
+        (setq dashboard-set-navigator nil)
+        )
 
       (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
 
-      ;; Set the title
-      (setq dashboard-banner-logo-title "This is Emacs")
-      ;; Set the banner
-      (setq dashboard-startup-banner 'logo)
-      ;; Value can be
-      ;; 'official which displays the official emacs logo
-      ;; 'logo which displays an alternative emacs logo
-      ;; 1, 2 or 3 which displays one of the text banners
-      ;; "path/to/your/image.png" or "path/to/your/text.txt" which displays whatever image/text you would prefer
-
-      ;; Content is not centered by default. To center, set
-      (setq dashboard-center-content t)
-
-      ;; To disable shortcut "jump" indicators for each section, set
-      ;; (setq dashboard-show-shortcuts nil)
-
-      (setq dashboard-items '((recents  . 5)
-                              (projects . 5)
-                              (agenda . 5)
-                              ))
-
-      (setq dashboard-set-heading-icons t)
-      (setq dashboard-set-file-icons t)
-
-      (setq dashboard-set-navigator t)
-
-      (setq dashboard-set-init-info t)
-
-      ;; (setq dashboard-init-info "This is an init message!")
-
-      (setq dashboard-footer-icon (all-the-icons-octicon "dashboard"
-                                                         :height 1.1
-                                                         :v-adjust -0.05
-                                                         :face 'font-lock-keyword-face))
-
-      (add-to-list 'dashboard-items '(agenda) t)
-      (setq dashboard-week-agenda t)
-
-  ;; Format: "(icon title help action face prefix suffix)"
-  ;; (setq dashboard-navigator-buttons
-  ;;       `(;; line1
-  ;;         ((,(all-the-icons-octicon "mark-github" :height 1 :v-adjust 0.0)
-  ;;          "Homepage"
-  ;;          "Browse homepage"
-  ;;          (lambda (&rest _) (browse-url "homepage")))
-  ;;         ("★" "Star" "Show stars" (lambda (&rest _) (show-stars)) warning)
-  ;;         ("?" "" "?/h" #'show-help nil "<" ">"))
-  ;;          ;; line 2
-  ;;         ((,(all-the-icons-faicon "linkedin" :height 1.1 :v-adjust 0.0)
-  ;;           "Linkedin"
-  ;;           ""
-  ;;           (lambda (&rest _) (browse-url "homepage")))
-  ;;          ("⚑" nil "Show flags" (lambda (&rest _) (message "flag")) error))))
-
 (defun rfh/switch-to-dashboard ()
-  "Jump to dashboard buffer; if it doesn't exist, create one."
+   "Jump to dashboard buffer; if it doesn't exist, create one."
   (interactive)
   (switch-to-buffer dashboard-buffer-name)
   (require 'dashboard)
   (dashboard-mode)
   (dashboard-insert-startupify-lists)
   (dashboard-refresh-buffer))
+
+(rfh/leader-keys
+  "bh"    '(rfh/switch-to-dashboard :which-key "home buffer/dashboard")
+  )
 
 (setq-default tab-width 2)
 (setq-default evil-shift-width tab-width)
@@ -544,8 +511,8 @@ _SPC_ cancel	_o_nly this   	    _d_elete
 
 (rfh/leader-keys
   "e"   '(:ignore t :which-key "eval")
-  "eb"  '(eval-buffer :which-key "eval buffer"))
-
+  "eb"  '(eval-buffer :which-key "eval buffer")
+  "ei"  '((lambda () (interactive) (load-file (expand-file-name "~/dotfiles/emacs/.emacs.d/init.el"))) :which-key "eval init.el"))
 (rfh/leader-keys
   :keymaps '(visual)
   "er" '(eval-region :which-key "eval region"))
@@ -884,35 +851,6 @@ T - tag prefix
   (setq olivetti-minimum-body-width 72)
   (setq olivetti-recall-visual-line-mode-entry-state t))
 
-;;   (define-minor-mode rfh/olivetti-mode
-;;     "Toggle buffer-local `olivetti-mode' with additional parameters.
-;; Fringes are disabled.  The default typeface is set to a proportionately-spaced family.
-;; The cursor becomes a blinking bar, per `rfh/cursor-type-mode', and centered, per `rfh/scroll-center-cursor-mode'. Line numbers and line highlighting suppressed."
-;;     :init-value nil
-;;     :global nil
-;;     (if rfh/olivetti-mode
-;;         (progn
-;;           (olivetti-mode 1)
-;;           ;; (focus-mode 1)
-;;           (setq-local line-spacing 0.25)
-;;           (text-scale-increase 1)
-;;           (set-window-fringes (selected-window) 0 0)
-;;           (variable-pitch-mode 1)
-;;           (rfh/cursor-type-mode 1)
-;;           (rfh/scroll-center-cursor-mode 1)
-;;           )
-;;       (olivetti-mode -1)
-;;       (setq-local line-spacing nil)
-;;       (set-window-fringes (selected-window) nil) ; Use default width
-;;       ;; (focus-mode nil)
-;;       (text-scale-decrease 1)
-;;       (variable-pitch-mode -1)
-;;       (rfh/cursor-type-mode -1)
-;;       (rfh/scroll-center-cursor-mode -1)
-;;       )
-;;     )
-;;   )
-
 ;; (use-package emacs
 ;;   :config
 ;;   (setq-default scroll-preserve-screen-position t)
@@ -948,6 +886,115 @@ T - tag prefix
 )
 
 (use-package pdf-tools)
+
+(use-package mu4e
+  :ensure nil
+  :load-path "/usr/share/emacs/site-lisp/mu4e/"
+  :config
+
+  ;; Refresh mail using isync every 10 minutes
+  (setq mu4e-update-interval (* 10 60))
+  (setq mu4e-get-mail-command "offlineimap")
+  (setq mu4e-maildir "~/maildir")
+
+  (setq mu4e-context-policy 'pick-first)
+  (setq mu4e-compose-format-flowed t)
+  (setq message-kill-buffer-on-exit t)
+
+  (setq mu4e-maildir-shortcuts t
+        mu4e-compose-dont-reply-to-self t
+        mu4e-change-filenames-when-moving t
+        mu4e-view-prefer-html t
+        mu4e-show-images t
+        mu4e-view-image-max-width 800
+        mu4e-enable-async-operations t
+        message-kill-buffer-on-exit t
+        mu4e-enable-mode-line t
+        mu4e-index-cleanup t
+        mu4e-index-lazy-check t
+        mu4e-use-fancy-chars t
+        mu4e-use-maildirs-extension t
+        mu4e-enable-notifications t
+        mu4e-view-show-addresses t
+        )
+
+  (setq mu4e-maildir-shortcuts
+      '( (:maildir "/ku/INBOX"                    :key ?i)
+         (:maildir "/ku/[Gmail].Sent Mail"        :key ?s)
+         (:maildir "/ku/[Gmail].Trash"            :key ?t)
+         (:maildir "/ku/[Gmail].All Mail"         :key ?a)
+         (:maildir "/personal/PrimaryInbox"       :key ?I)
+         (:maildir "/personal/[Gmail].Sent Mail"  :key ?S)
+         (:maildir "/personal/[Gmail].Trash"      :key ?T)
+         ))
+
+  (setq mu4e-contexts
+    (list
+      ;; personal account
+      (make-mu4e-context
+          :name "Personal"
+          :enter-func (lambda () (mu4e-message "Switch to personal context"))
+          ;; leave-func not defined
+          :match-func (lambda (msg)
+		      (when msg
+			    (string= (mu4e-message-field msg :maildir) "/personal")))
+          :vars '(  ( user-mail-address      . "robert.f.howton@gmail.com"  )
+            ( user-full-name     . "Robert Howton" )
+            ( mu4e-compose-signature .
+            (concat
+              "Robert Howton\n"
+              "roberthowton.com\n"))
+              ;; (org-msg-signature "
+
+
+              ;; #+begin_signature
+              ;; Robert Howton \\\\
+              ;; [[roberthowton.com]]
+              ;; #+end_signature")
+              (mu4e-drafts-folder . "/personal/[Gmail].Drafts")
+              (mu4e-sent-folder   . "/personal/[Gmail].Sent Mail")
+              (mu4e-trash-folder  . "/personal/[Gmail].Trash")
+              (smtpmail-starttls-credentials . '(("smtp.gmail.com" 587 nil nil)))
+              (smtpmail-smtp-user . "robert.f.howton@gmail.com")
+              (smtpmail-auth-credentials . '(("smtp.gmail.com" 587 "robert.f.howton@gmail.com" nil)))
+              (smtpmail-default-smtp-server . "smtp.gmail.com")
+              (smtpmail-smtp-server . "smtp.gmail.com")
+              (smtpmail-smtp-service . 587)
+              ))
+       ;; work account
+       (make-mu4e-context
+           :name "Work"
+           :enter-func (lambda () (mu4e-message "Switch to work context"))
+           ;; leave-fun not defined
+           :match-func (lambda (msg)
+			       (when msg
+			            (string= (mu4e-message-field msg :maildir) "/ku")))
+           :vars '(  ( user-mail-address      . "rhowton@ku.edu.tr" )
+             ( user-full-name     . "Robert Howton" )
+             ( mu4e-compose-signature .
+             (concat
+               "Robert Howton\n"
+               "Assistant Professor\n"
+               "Department of Philosophy\n"
+               "Koç University\n\n"
+               "roberthowton.com"))
+               (mu4e-drafts-folder . "/ku/[Gmail].Drafts")
+               (mu4e-sent-folder   . "/ku/[Gmail].Sent Mail")
+               (mu4e-trash-folder  . "/ku/[Gmail].Trash")
+               (smtpmail-starttls-credentials . '(("smtp.gmail.com" 587 nil nil)))
+               (smtpmail-smtp-user . "rhowton@ku.edu.tr")
+               (smtpmail-auth-credentials . '(("smtp.gmail.com" 587 "rhowton@ku.edu.tr" nil)))
+               (smtpmail-default-smtp-server . "smtp.gmail.com")
+               (smtpmail-smtp-server . "smtp.gmail.com")
+               (smtpmail-smtp-service . 587)
+               )
+               ))))
+
+(rfh/leader-keys
+  "M"     '(mu4e :which-key "mail dashboard")
+  "m"     '(:ignore t :which-key "mail commands")
+  "mc"    '(mu4e-compose-new :which-key "compose new message")
+)
 
 (use-package deft
  :config
@@ -1184,9 +1231,6 @@ T - tag prefix
 
   ;; Turn off text scale mode (or use the next line if you didn't use text-scale-mode)
   (text-scale-mode 0))
-
-  ;; ;; If you use face-remapping-alist, this clears the scaling:
-  ;; (setq-local face-remapping-alist '((default variable-pitch default))))
 
 (use-package org-tree-slide
   :hook ((org-tree-slide-play . rfh/presentation-setup)
