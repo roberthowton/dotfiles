@@ -80,7 +80,6 @@ This file generates [[file:init.el][init.el]] which can be loaded by Emacs at st
 #+end_src
 
 * Startup Behavior
-
 ** Loading emacs as daemon
 
 *** Daemonp function
@@ -132,7 +131,7 @@ This file generates [[file:init.el][init.el]] which can be loaded by Emacs at st
 (set-face-attribute 'fixed-pitch nil :font "Fira Code" :height rfh/default-font-size)
 
 ;; Set the variable pitch face
-(set-face-attribute 'variable-pitch nil :font "Fira Sans" :height rfh/default-font-size :weight 'regular)
+(set-face-attribute 'variable-pitch nil :font "Fira Sans" :height rfh/default-font-size :weight 'light)
 
 #+end_src
 

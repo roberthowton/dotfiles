@@ -47,7 +47,7 @@
 (set-face-attribute 'fixed-pitch nil :font "Fira Code" :height rfh/default-font-size)
 
 ;; Set the variable pitch face
-(set-face-attribute 'variable-pitch nil :font "Fira Sans" :height rfh/default-font-size :weight 'regular)
+(set-face-attribute 'variable-pitch nil :font "Fira Sans" :height rfh/default-font-size :weight 'light)
 
 (use-package emojify
   :hook (erc-mode . emojify-mode)
