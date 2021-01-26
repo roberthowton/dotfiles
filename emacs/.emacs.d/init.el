@@ -436,11 +436,11 @@ _SPC_ cancel	_o_nly this   	    _d_elete
         (setq dashboard-set-init-info t)
         (setq dashboard-banner-logo-title "")
         (setq dashboard-center-content t)
-        (add-to-list 'dashboard-items '(agenda) t)
-        (setq dashboard-week-agenda t)
+        ;; (add-to-list 'dashboard-items '(agenda) t)
+        ;; (setq dashboard-week-agenda t)
         (setq dashboard-set-footer nil)
         (setq dashboard-set-navigator nil)
-        )
+       )
 
       (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
 
@@ -889,7 +889,7 @@ T - tag prefix
 
 (use-package mu4e
   :ensure nil
-  :load-path "/usr/share/emacs/site-lisp/mu4e/"
+  :load-path "/home/rfh/.guix-profile/share/emacs/site-lisp/"
   :config
 
   ;; Refresh mail using isync every 10 minutes
