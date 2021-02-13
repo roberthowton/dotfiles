@@ -21,12 +21,32 @@
   (require 'use-package))
 
 (setq use-package-always-ensure t)
+(setq use-package-verbose t)
+
+(use-package auto-package-update
+  :custom
+  (auto-package-update-interval 7)
+  (auto-package-update-prompt-before update t)
+  (auto-package-update-hide-results t)
+  :config
+  (auto-package-update-maybe)
+  (auto-package-update-at-time "09:00")
+)
 
 (if (daemonp)
     (message "Loading in the daemon!")
     (message "Loading standalone!"))
 
 (setq inhibit-startup-message t)
+
+(defun rfh/display-startup-time ()
+  (message "Emacs loaded in %s with %d garbage collections."
+           (format "%.2f seconds"
+                   (float-time
+                   (time-subtract after-init-time before-init-time)))
+           gcs-done))
+
+(add-hook 'emacs-startup-hook #'rfh/display-startup-time)
 
 (scroll-bar-mode -1)    ; disable visible scrollbar
 (tool-bar-mode -1)      ; disable the toolbar
@@ -172,6 +192,10 @@
   :defer t
   :after hydra)
 
+(use-package all-the-icons-ivy-rich
+  :ensure t
+  :init (all-the-icons-ivy-rich-mode 1))
+
 (use-package ivy-rich
   :init
   (ivy-rich-mode 1)
@@ -190,6 +214,7 @@
 ;; (ivy-posframe-mode 1))
 
 (use-package ivy-bibtex
+ :commands ivy-bibtex
  :config
  (setq bibtex-completion-bibliography-path '("~/Documents/Library/library.bib"))
  (setq bibtex-completion-library-path '("~/Documents/Library/"))
@@ -214,9 +239,11 @@
          ("C-M-l" . counsel-imenu)
          :map minibuffer-local-map
          ("C-r" . 'counsel-minibuffer-history))
+  :custom
+  (counsel-linux-app-format-function #'counsel-linux-app-format-function-name-only)
   :config
   (setq ivy-initial-inputs-alist nil) ;; don't start `counsel-M-x' searches with ^
-  )
+  (counsel-mode 1))
 
 (use-package flx  ;; Improves sorting for fuzzy-matched results
   :defer t
@@ -235,6 +262,7 @@
    ;;  ("<tab>" . company-complete-selection))
   :config
   (add-hook 'after-init-hook 'global-company-mode)
+  (add-hook 'exwm-init-hook 'global-company-mode)
   :custom
   (company-minimum-prefix-length 1)
   (company-idle-delay 0.0))
@@ -243,6 +271,7 @@
   :hook (company-mode . company-box-mode))
 
 (use-package general
+  :after evil
   :config
   (general-create-definer rfh/leader-keys
     :keymaps '(normal insert visual emacs)
@@ -304,6 +333,7 @@
  )
 
 (use-package avy
+  :defer t
   :commands (avy-goto-char avy-goto-word-0 avy-goto-line))
 
 (rfh/leader-keys
@@ -318,9 +348,9 @@
   (setq alert-default-style 'notifications))
 
 (rfh/leader-keys
-"F"  '(:ignore t :which-key "frames")
-"Fd" '(delete-frame :which-key "delete current frame")
-"FD" '(delete-other-frames :which-key "delete other frames")
+  "F"  '(:ignore t :which-key "frames")
+  "Fd" '(delete-frame :which-key "delete current frame")
+  "FD" '(delete-other-frames :which-key "delete other frames")
 )
 
 (use-package default-text-scale
@@ -334,7 +364,9 @@
   (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l)))
 
 (use-package winum
-  :init (winum-mode))
+  :defer
+  :config
+  (winum-mode))
 
 (winum-set-keymap-prefix (kbd "C-w"))
 
@@ -463,18 +495,19 @@ _SPC_ cancel	_o_nly this   	    _d_elete
 (use-package counsel
   :bind
   (("M-y" . counsel-yank-pop)
-   :map ivy-minibuffer-map
-   ("M-y" . ivy-next-line)))
+  :map ivy-minibuffer-map
+  ("M-y" . ivy-next-line)))
 
 (rfh/leader-keys
 "y" '(counsel-yank-pop :which-key "yank ring"))
 
 (setq-default indent-tabs-mode nil)
 
-(use-package evil-nerd-commenter)
+(use-package evil-nerd-commenter
+  :defer t)
 
 (rfh/leader-keys
- ";" '(evilnc-comment-or-uncomment-lines :which-key "comment/uncomment lines"))
+  ";" '(evilnc-comment-or-uncomment-lines :which-key "comment/uncomment lines"))
 
 (use-package ws-butler
   :hook ((text-mode . ws-butler-mode)
@@ -572,6 +605,7 @@ _SPC_ cancel	_o_nly this   	    _d_elete
   :config (counsel-projectile-mode))
 
 (use-package magit
+  :commands magit-status
   :custom
   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
@@ -701,19 +735,24 @@ _SPC_ cancel	_o_nly this   	    _d_elete
 
 (setq delete-by-moving-to-trash t)
 
-;; Keep transient cruft out of ~/.emacs.d/
-(setq user-emacs-directory "~/.cache/emacs/"
-      backup-directory-alist `(("." . ,(expand-file-name "backups" user-emacs-directory)))
-      url-history-file (expand-file-name "url/history" user-emacs-directory)
-      auto-save-list-file-prefix (expand-file-name "auto-save-list/.saves-" user-emacs-directory)
-      projectile-known-projects-file (expand-file-name "projectile-bookmarks.eld" user-emacs-directory))
+(use-package no-littering)
 
-;; Keep customization settings in a temporary file (thanks Ambrevar!)
-(setq custom-file
-      (if (boundp 'server-socket-dir)
-          (expand-file-name "custom.el" server-socket-dir)
-        (expand-file-name (format "emacs-custom-%s.el" (user-uid)) temporary-file-directory)))
-(load custom-file t)
+(setq auto-save-file-name-transforms
+      `((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
+
+;; ;; Keep transient cruft out of ~/.emacs.d/
+;; (setq user-emacs-directory "~/.cache/emacs/"
+;;       backup-directory-alist `(("." . ,(expand-file-name "backups" user-emacs-directory)))
+;;       url-history-file (expand-file-name "url/history" user-emacs-directory)
+;;       auto-save-list-file-prefix (expand-file-name "auto-save-list/.saves-" user-emacs-directory)
+;;       projectile-known-projects-file (expand-file-name "projectile-bookmarks.eld" user-emacs-directory))
+
+;; ;; Keep customization settings in a temporary file (thanks Ambrevar!)
+;; (setq custom-file
+;;       (if (boundp 'server-socket-dir)
+;;           (expand-file-name "custom.el" server-socket-dir)
+;;         (expand-file-name (format "emacs-custom-%s.el" (user-uid)) temporary-file-directory)))
+;; (load custom-file t)
 
 (use-package dired
   :ensure nil
@@ -725,13 +764,16 @@ _SPC_ cancel	_o_nly this   	    _d_elete
     "h" 'dired-single-up-directory
     "l" 'dired-single-buffer))
 
-(use-package dired-single)
+(use-package dired-single
+  :after dired)
 
 (use-package diredfl
+  :after dired
   :config
   (add-hook 'dired-mode-hook 'diredfl-global-mode))
 
 (use-package dired-open
+  :after dired
   :config
   ;; Doesn't work as expected!
   ;; (add-to-list 'dired-open-functions #'dired-open-xdg t)
@@ -742,13 +784,13 @@ _SPC_ cancel	_o_nly this   	    _d_elete
 
 (use-package dired-hide-dotfiles
   ;; :hook (dired-mode . dired-hide-dotfiles-mode)
+  :after dired
   :config
   (evil-collection-define-key 'normal 'dired-mode-map
     "H" 'dired-hide-dotfiles-mode))
 
 (rfh/leader-keys
-"a"  '(:ignore t :which-key "applications")
-"ad" '(dired :which-key "dired"))
+"D" '(dired :which-key "dired"))
 
 (defhydra hydra-dired (:hint nil :color pink)
   "
@@ -878,17 +920,20 @@ T - tag prefix
 ;; ;; (spacemacs/set-leader-keys "or" 'rfh/scroll-center-cursor-mode)
 
 (use-package pandoc-mode
- :defer t)
+  :defer t)
 
-(use-package ox-pandoc
- :config
- ;; (org-pandoc-options-for-latex-pdf '((pdf-engine . "xelatex")))
-)
+;; (use-package ox-pandoc
+;;   :after org
+;;   :config
+;;   ;; (org-pandoc-options-for-latex-pdf '((pdf-engine . "xelatex")))
+;; )
 
-(use-package pdf-tools)
+(use-package pdf-tools
+  :defer t)
 
 (use-package mu4e
   :ensure nil
+  :defer 20
   :load-path "/home/rfh/.guix-profile/share/emacs/site-lisp/"
   :config
 
@@ -997,6 +1042,7 @@ T - tag prefix
 )
 
 (use-package deft
+ :commands deft
  :config
  (setq deft-file-limit 30)
  (setq deft-recursive t)
@@ -1006,7 +1052,20 @@ T - tag prefix
 (rfh/leader-keys
  "d" '(deft :which-key "deft"))
 
-(with-eval-after-load 'org
+(use-package guix
+  :defer t
+  :config
+  (setq guix-package-list-type 'package))
+
+(rfh/leader-keys
+  "G"  '(:ignore t :which-key "Guix")
+  "GG" '(guix :which-key "Guix interface")
+  "Gi" '(guix-installed-user-packages :which-key "user packages")
+  "GI" '(guix-installed-system-packages :which-key "system packages")
+  "Gs" '(guix-packages-by-name :which-key "search packages")
+  "GP" '(guix-pull :which-key "pull"))
+
+(setq epa-pinentry-mode 'loopback)
 
 (defun rfh/org-font-setup ()
   ;; Replace list hyphen with dot
@@ -1045,18 +1104,20 @@ T - tag prefix
   (setq org-ellipsis " ▾")
   (rfh/org-font-setup))
 
-(rfh/leader-keys
-"o" '(:ignore t :which-key "org-mode"))
+(with-eval-after-load 'org
 
-(setq org-directory "~/projects/org")
+  (rfh/leader-keys
+    "o" '(:ignore t :which-key "org-mode"))
 
-(setq org-default-notes-file (concat org-directory "/notes.org"))
+  (setq org-directory "~/projects/org")
 
-(setq org-todo-keywords
-        '((sequence "TODO(t)" "WAITING(w)" "|" "DONE(D)" "CANCELLED(C)")
-         (sequence "BUY(b)" "|" "BOUGHT(B)")
-         (sequence "MEET(m)" "|" "MET(M)" "POSTPONED(P)"))
-         )
+  (setq org-default-notes-file (concat org-directory "/notes.org"))
+
+  (setq org-todo-keywords
+            '((sequence "TODO(t)" "WAITING(w)" "|" "DONE(D)" "CANCELLED(C)")
+            (sequence "BUY(b)" "|" "BOUGHT(B)")
+            (sequence "MEET(m)" "|" "MET(M)" "POSTPONED(P)"))
+            )
 
 (setq org-export-with-smart-quotes t)
 
@@ -1175,8 +1236,7 @@ T - tag prefix
                          "~/projects/org/meetings.org"
                          "~/projects/org/shopping.org"))
 
-(use-package org-rich-yank
-  :demand t)
+(use-package org-rich-yank)
 
 (use-package org-roam
      :hook
@@ -1202,10 +1262,6 @@ T - tag prefix
     )
 
 (use-package org-re-reveal)
-
-(use-package org-tree-slide
-  :custom
-  (org-image-actual-width nil))
 
 (use-package hide-mode-line)
 
@@ -1251,8 +1307,8 @@ T - tag prefix
 (push '("conf-unix" . conf-unix) org-src-lang-modes)
 
 (defun rfh/org-babel-tangle-config ()
-  (when (string-equal (buffer-file-name)
-                      (expand-file-name "~/dotfiles/emacs/.emacs.d/emacs.org"))
+  (when (string-equal (file-name-directory (buffer-file-name))
+                      (expand-file-name "~/dotfiles/emacs/.emacs.d/"))
     ;; Dynamic scoping to the rescue
     (let ((org-confirm-babel-evaluate nil))
       (org-babel-tangle))))
@@ -1264,3 +1320,5 @@ T - tag prefix
 (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
 
 )
+
+(load-file "~/.emacs.d/desktop.el")

@@ -76,6 +76,23 @@ This file generates [[file:init.el][init.el]] which can be loaded by Emacs at st
 #+begin_src emacs-lisp
 
 (setq use-package-always-ensure t)
+(setq use-package-verbose t)
+
+#+end_src
+
+** Update Packages Automatically
+
+#+begin_src emacs-lisp
+
+(use-package auto-package-update
+  :custom
+  (auto-package-update-interval 7)
+  (auto-package-update-prompt-before update t)
+  (auto-package-update-hide-results t)
+  :config
+  (auto-package-update-maybe)
+  (auto-package-update-at-time "09:00")
+)
 
 #+end_src
 
@@ -99,6 +116,21 @@ This file generates [[file:init.el][init.el]] which can be loaded by Emacs at st
 #+begin_src emacs-lisp
 
 (setq inhibit-startup-message t)
+
+#+end_src
+
+* Startup Performance
+
+#+begin_src emacs-lisp
+
+  (defun rfh/display-startup-time ()
+    (message "Emacs loaded in %s with %d garbage collections."
+             (format "%.2f seconds"
+                     (float-time
+                     (time-subtract after-init-time before-init-time)))
+             gcs-done))
+
+  (add-hook 'emacs-startup-hook #'rfh/display-startup-time)
 
 #+end_src
 
@@ -286,6 +318,7 @@ https://github.com/Wilfred/helpful
 #+end_src
 
 ** Completion Frameworks
+
 *** Ivy
 
 #+begin_src emacs-lisp
@@ -342,6 +375,10 @@ https://github.com/Wilfred/helpful
 
 #+begin_src emacs-lisp
 
+(use-package all-the-icons-ivy-rich
+  :ensure t
+  :init (all-the-icons-ivy-rich-mode 1))
+
 (use-package ivy-rich
   :init
   (ivy-rich-mode 1)
@@ -372,6 +409,7 @@ https://github.com/Wilfred/helpful
 #+begin_src emacs-lisp
 
 (use-package ivy-bibtex
+ :commands ivy-bibtex
  :config
  (setq bibtex-completion-bibliography-path '("~/Documents/Library/library.bib"))
  (setq bibtex-completion-library-path '("~/Documents/Library/"))
@@ -403,9 +441,11 @@ https://github.com/Wilfred/helpful
          ("C-M-l" . counsel-imenu)
          :map minibuffer-local-map
          ("C-r" . 'counsel-minibuffer-history))
+  :custom
+  (counsel-linux-app-format-function #'counsel-linux-app-format-function-name-only)
   :config
   (setq ivy-initial-inputs-alist nil) ;; don't start `counsel-M-x' searches with ^
-  )
+  (counsel-mode 1))
 
 (use-package flx  ;; Improves sorting for fuzzy-matched results
   :defer t
@@ -430,6 +470,7 @@ https://github.com/Wilfred/helpful
    ;;  ("<tab>" . company-complete-selection))
   :config
   (add-hook 'after-init-hook 'global-company-mode)
+  (add-hook 'exwm-init-hook 'global-company-mode)
   :custom
   (company-minimum-prefix-length 1)
   (company-idle-delay 0.0))
@@ -445,6 +486,7 @@ https://github.com/Wilfred/helpful
 #+begin_src emacs-lisp
 
   (use-package general
+    :after evil
     :config
     (general-create-definer rfh/leader-keys
       :keymaps '(normal insert visual emacs)
@@ -482,7 +524,9 @@ https://github.com/Wilfred/helpful
 #+end_src
 
 *** UI Controls
+
 **** Theme Switching
+
 #+begin_src emacs-lisp
 
   (rfh/leader-keys
@@ -490,6 +534,7 @@ https://github.com/Wilfred/helpful
     "Tt" '(counsel-load-theme :which-key "choose theme"))
 
 #+end_src
+
 **** Text-Scaling
 
 #+begin_src emacs-lisp
@@ -535,6 +580,7 @@ https://github.com/Wilfred/helpful
 #+begin_src emacs-lisp
 
   (use-package avy
+    :defer t
     :commands (avy-goto-char avy-goto-word-0 avy-goto-line))
 
   (rfh/leader-keys
@@ -561,11 +607,11 @@ https://github.com/Wilfred/helpful
 
 #+begin_src emacs-lisp
 
-(rfh/leader-keys
-"F"  '(:ignore t :which-key "frames")
-"Fd" '(delete-frame :which-key "delete current frame")
-"FD" '(delete-other-frames :which-key "delete other frames")
-)
+  (rfh/leader-keys
+    "F"  '(:ignore t :which-key "frames")
+    "Fd" '(delete-frame :which-key "delete current frame")
+    "FD" '(delete-other-frames :which-key "delete other frames")
+  )
 
 
 #+end_src
@@ -601,7 +647,9 @@ The keybindings for this are =C+M+-= and =C+M+=.
 #+begin_src emacs-lisp
 
 (use-package winum
-  :init (winum-mode))
+  :defer
+  :config
+  (winum-mode))
 
 (winum-set-keymap-prefix (kbd "C-w"))
 
@@ -769,8 +817,8 @@ https://github.com/emacs-dashboard/emacs-dashboard
 (use-package counsel
   :bind
   (("M-y" . counsel-yank-pop)
-   :map ivy-minibuffer-map
-   ("M-y" . ivy-next-line)))
+  :map ivy-minibuffer-map
+  ("M-y" . ivy-next-line)))
 
 (rfh/leader-keys
 "y" '(counsel-yank-pop :which-key "yank ring"))
@@ -788,10 +836,11 @@ https://github.com/emacs-dashboard/emacs-dashboard
 ** Commenting Lines
 #+begin_src emacs-lisp
 
-(use-package evil-nerd-commenter)
+ (use-package evil-nerd-commenter
+   :defer t)
 
-(rfh/leader-keys
- ";" '(evilnc-comment-or-uncomment-lines :which-key "comment/uncomment lines"))
+ (rfh/leader-keys
+   ";" '(evilnc-comment-or-uncomment-lines :which-key "comment/uncomment lines"))
 
 #+end_src
 
@@ -977,6 +1026,7 @@ Sets the background of HTML color strings in buffers to be the color mentioned.
 #+begin_src emacs-lisp
 
   (use-package magit
+    :commands magit-status
     :custom
     (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
@@ -1182,23 +1232,34 @@ Sets the background of HTML color strings in buffers to be the color mentioned.
 (setq delete-by-moving-to-trash t)
 #+end_src
 
+** Keep Folders Clean
+
+#+begin_src emacs-lisp
+
+(use-package no-littering)
+
+(setq auto-save-file-name-transforms
+      `((".*" ,(no-littering-expand-var-file-name "auto-save/") t)))
+
+#+end_src
+
 ** Keep =.emacs.d= Clean
 
 #+begin_src emacs-lisp
 
-;; Keep transient cruft out of ~/.emacs.d/
-(setq user-emacs-directory "~/.cache/emacs/"
-      backup-directory-alist `(("." . ,(expand-file-name "backups" user-emacs-directory)))
-      url-history-file (expand-file-name "url/history" user-emacs-directory)
-      auto-save-list-file-prefix (expand-file-name "auto-save-list/.saves-" user-emacs-directory)
-      projectile-known-projects-file (expand-file-name "projectile-bookmarks.eld" user-emacs-directory))
+  ;; ;; Keep transient cruft out of ~/.emacs.d/
+  ;; (setq user-emacs-directory "~/.cache/emacs/"
+  ;;       backup-directory-alist `(("." . ,(expand-file-name "backups" user-emacs-directory)))
+  ;;       url-history-file (expand-file-name "url/history" user-emacs-directory)
+  ;;       auto-save-list-file-prefix (expand-file-name "auto-save-list/.saves-" user-emacs-directory)
+  ;;       projectile-known-projects-file (expand-file-name "projectile-bookmarks.eld" user-emacs-directory))
 
-;; Keep customization settings in a temporary file (thanks Ambrevar!)
-(setq custom-file
-      (if (boundp 'server-socket-dir)
-          (expand-file-name "custom.el" server-socket-dir)
-        (expand-file-name (format "emacs-custom-%s.el" (user-uid)) temporary-file-directory)))
-(load custom-file t)
+  ;; ;; Keep customization settings in a temporary file (thanks Ambrevar!)
+  ;; (setq custom-file
+  ;;       (if (boundp 'server-socket-dir)
+  ;;           (expand-file-name "custom.el" server-socket-dir)
+  ;;         (expand-file-name (format "emacs-custom-%s.el" (user-uid)) temporary-file-directory)))
+  ;; (load custom-file t)
 
 #+end_src
 
@@ -1279,13 +1340,16 @@ Dired is a built-in file manager for Emacs that does some pretty amazing things!
       "h" 'dired-single-up-directory
       "l" 'dired-single-buffer))
 
-  (use-package dired-single)
+  (use-package dired-single
+    :after dired)
 
   (use-package diredfl
+    :after dired
     :config
     (add-hook 'dired-mode-hook 'diredfl-global-mode))
 
   (use-package dired-open
+    :after dired
     :config
     ;; Doesn't work as expected!
     ;; (add-to-list 'dired-open-functions #'dired-open-xdg t)
@@ -1296,13 +1360,13 @@ Dired is a built-in file manager for Emacs that does some pretty amazing things!
 
   (use-package dired-hide-dotfiles
     ;; :hook (dired-mode . dired-hide-dotfiles-mode)
+    :after dired
     :config
     (evil-collection-define-key 'normal 'dired-mode-map
       "H" 'dired-hide-dotfiles-mode))
 
   (rfh/leader-keys
-  "a"  '(:ignore t :which-key "applications")
-  "ad" '(dired :which-key "dired"))
+  "D" '(dired :which-key "dired"))
 #+end_src
 
 *** Dired Hydra
@@ -1468,13 +1532,14 @@ T - tag prefix
 
 #+begin_src emacs-lisp
 
-(use-package pandoc-mode
- :defer t)
+  (use-package pandoc-mode
+    :defer t)
 
-(use-package ox-pandoc
- :config
- ;; (org-pandoc-options-for-latex-pdf '((pdf-engine . "xelatex")))
-)
+  ;; (use-package ox-pandoc
+  ;;   :after org
+  ;;   :config
+  ;;   ;; (org-pandoc-options-for-latex-pdf '((pdf-engine . "xelatex")))
+  ;; )
 
 #+end_src
 
@@ -1482,11 +1547,12 @@ T - tag prefix
 
 #+begin_src emacs-lisp
 
-(use-package pdf-tools)
+(use-package pdf-tools
+  :defer t)
 
 #+end_src
 
-* Apps
+* Apps & System Utilities
 
 ** TODO Mail
 
@@ -1494,6 +1560,7 @@ T - tag prefix
 
 (use-package mu4e
   :ensure nil
+  :defer 20
   :load-path "/home/rfh/.guix-profile/share/emacs/site-lisp/"
   :config
 
@@ -1607,6 +1674,7 @@ T - tag prefix
 
 #+begin_src emacs-lisp
 (use-package deft
+ :commands deft
  :config
  (setq deft-file-limit 30)
  (setq deft-recursive t)
@@ -1618,11 +1686,35 @@ T - tag prefix
 
 #+end_src
 
-* Org-Mode Configuration
+** Guix
 
 #+begin_src emacs-lisp
-(with-eval-after-load 'org
+
+(use-package guix
+  :defer t
+  :config
+  (setq guix-package-list-type 'package))
+
+(rfh/leader-keys
+  "G"  '(:ignore t :which-key "Guix")
+  "GG" '(guix :which-key "Guix interface")
+  "Gi" '(guix-installed-user-packages :which-key "user packages")
+  "GI" '(guix-installed-system-packages :which-key "system packages")
+  "Gs" '(guix-packages-by-name :which-key "search packages")
+  "GP" '(guix-pull :which-key "pull"))
+
 #+end_src
+
+** Password Management
+
+Workaround for inaccessible pinentry dialogue in exwm. (Make sure you have =pinentry-tty= installed.)
+#+begin_src emacs-lisp
+
+(setq epa-pinentry-mode 'loopback)
+
+#+end_src
+
+* Org-Mode Configuration
 
 ** Better Font Faces
 
@@ -1671,18 +1763,20 @@ T - tag prefix
   (setq org-ellipsis " ▾")
   (rfh/org-font-setup))
 
-(rfh/leader-keys
-"o" '(:ignore t :which-key "org-mode"))
+(with-eval-after-load 'org
 
-(setq org-directory "~/projects/org")
+  (rfh/leader-keys
+    "o" '(:ignore t :which-key "org-mode"))
 
-(setq org-default-notes-file (concat org-directory "/notes.org"))
+  (setq org-directory "~/projects/org")
 
-(setq org-todo-keywords
-        '((sequence "TODO(t)" "WAITING(w)" "|" "DONE(D)" "CANCELLED(C)")
-         (sequence "BUY(b)" "|" "BOUGHT(B)")
-         (sequence "MEET(m)" "|" "MET(M)" "POSTPONED(P)"))
-         )
+  (setq org-default-notes-file (concat org-directory "/notes.org"))
+
+  (setq org-todo-keywords
+            '((sequence "TODO(t)" "WAITING(w)" "|" "DONE(D)" "CANCELLED(C)")
+            (sequence "BUY(b)" "|" "BOUGHT(B)")
+            (sequence "MEET(m)" "|" "MET(M)" "POSTPONED(P)"))
+            )
 
 #+end_src
 
@@ -1721,6 +1815,7 @@ T - tag prefix
  :hook (org-mode . rfh/org-mode-visual-fill))
 
 #+end_src
+
 ** Org-Protocol
 
 #+begin_src emacs-lisp
@@ -1850,8 +1945,7 @@ Check these lines for `org-agenda' config ideas: https://github.com/daviwil/emac
 
 #+begin_src emacs-lisp
 
-(use-package org-rich-yank
-  :demand t)
+(use-package org-rich-yank)
 
 #+end_src
 
@@ -1889,6 +1983,7 @@ Check these lines for `org-agenda' config ideas: https://github.com/daviwil/emac
     )
 
 #+end_src
+
 ** Org-Re-Reveal
 
 #+begin_src emacs-lisp
@@ -1900,10 +1995,6 @@ Check these lines for `org-agenda' config ideas: https://github.com/daviwil/emac
 ** Org-Tree-Slide
 
 #+begin_src emacs-lisp
-
-  (use-package org-tree-slide
-    :custom
-    (org-image-actual-width nil))
 
   (use-package hide-mode-line)
 
@@ -1964,8 +2055,8 @@ Automatically tangle =emacs.org= on save.
 #+begin_src emacs-lisp
 
 (defun rfh/org-babel-tangle-config ()
-  (when (string-equal (buffer-file-name)
-                      (expand-file-name "~/dotfiles/emacs/.emacs.d/emacs.org"))
+  (when (string-equal (file-name-directory (buffer-file-name))
+                      (expand-file-name "~/dotfiles/emacs/.emacs.d/"))
     ;; Dynamic scoping to the rescue
     (let ((org-confirm-babel-evaluate nil))
       (org-babel-tangle))))
@@ -1989,5 +2080,13 @@ Automatically tangle =emacs.org= on save.
 #+begin_src emacs-lisp
 
 )
+
+#+end_src
+
+* Load Emacs Desktop Environment
+
+#+begin_src emacs-lisp
+
+(load-file "~/.emacs.d/desktop.el")
 
 #+end_src
