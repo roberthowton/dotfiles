@@ -1556,6 +1556,8 @@ T - tag prefix
 
 ** TODO Mail
 
+*** mu4e
+
 #+begin_src emacs-lisp
 
 (use-package mu4e
@@ -1662,11 +1664,59 @@ T - tag prefix
                )
                ))))
 
+;; configure mail send function
+(setq message-send-mail-function 'smtpmail-send-it)
+
+;; use mu4e for e-mail in emacs
+(setq mail-user-agent 'mu4e-user-agent)
+
+(add-hook 'mu4e-view-mode-hook #'visual-line-mode)
+
+(add-hook 'mu4e-compose-mode-hook 'flyspell-mode)
+(add-hook 'mu4e-compose-mode-hook 'visual-line-mode)
+
+(setq mu4e-completing-read-function 'ivy-completing-read)
+
+;; enable org-mode links
+(use-package mu4e-org
+  :after (org mu4e)
+  :ensure nil
+  :config
+  (setq mu4e-org-link-query-in-headers-mode nil))
+
 (rfh/leader-keys
   "M"     '(mu4e :which-key "mail dashboard")
   "m"     '(:ignore t :which-key "mail commands")
   "mc"    '(mu4e-compose-new :which-key "compose new message")
 )
+
+#+end_src
+
+*** org-msg
+
+#+begin_src emacs-lisp
+
+(use-package org-msg
+  :config
+  (setq org-msg-options "html-postamble:nil H:5 num:nil ^:{} toc:nil author:nil email:nil \\n:t"
+        org-msg-startup "hidestars indent inlineimages"
+        org-msg-greeting-fmt "\nHi *%s*,\n\n"
+        org-msg-recipient-names '(("robert.f.howton@gmail.com" . "Robbie") ("rhowton@ku.edu.tr" . "Robert"))
+        org-msg-greeting-name-limit 3
+        org-msg-default-alternatives '(text html)
+        org-msg-convert-citation t
+        org-msg-signature "
+
+#+begin_signature
+Robert Howton
+Assistant Professor
+Department of Philosophy
+Koç University
+
+roberthowton.com
+#+end_signature")
+(org-msg-mode)
+  )
 
 #+end_src
 
@@ -1760,7 +1810,14 @@ Workaround for inaccessible pinentry dialogue in exwm. (Make sure you have =pine
 (use-package org
   :hook (org-mode . rfh/org-mode-setup)
   :config
-  (setq org-ellipsis " ▾")
+  (setq org-ellipsis " ▾"
+        org-hide-emphasis-markers t
+        org-src-fontify-natively t
+        org-src-tab-acts-natively t
+        org-edit-src-content-indentation 2
+        org-src-preserve-indentation nil
+        org-startup-folded 'content
+        org-cycle-separator-lines 2)
   (rfh/org-font-setup))
 
 (with-eval-after-load 'org
