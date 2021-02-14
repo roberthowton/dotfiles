@@ -3,9 +3,35 @@
 
 * Window Mangement
 
+
 ** EXWM Configuration
 
 #+begin_src emacs-lisp
+
+  (defvar rfh/polybar-process nil
+    "Holds the process of the running Polybar instance, if any")
+
+  (defun rfh/kill-panel ()
+    (interactive)
+    (when rfh/polybar-process
+      (ignore-errors
+        (kill-process efs/polybar-process)))
+    (setq rfh/polybar-process nil))
+
+  (defun rfh/start-panel ()
+    (interactive)
+    (rfh/kill-panel)
+    (setq rfh/polybar-process (start-process-shell-command "polybar" nil "polybar panel")))
+
+  (defun rfh/send-polybar-hook (module-name hook-index)
+    (start-process-shell-command "polybar-msg" nil (format "polybar-msg hook %s %s" module-name hook-index)))
+
+  (defun rfh/send-polybar-exwm-workspace ()
+    (rfh/send-polybar-hook "exwm-workspace" 1))
+
+  ;; Update panel indicator when workspace changes
+  (add-hook 'exwm-workspace-switch-hook #'rfh/send-polybar-exwm-workspace)
+
 
   (defun rfh/exwm-update-class ()
     (exwm-workspace-rename-buffer exwm-class-name))
@@ -17,8 +43,13 @@
   (defun rfh/exwm-init-hook ()
     ;; Make workspace 1 be the one where we land at startup
     (exwm-workspace-switch-create 1)
+
     ;; Launch apps that will run in the background
-    ;; (rfh/run-in-background "dunst")
+    (rfh/run-in-background "nm-applet")
+
+    ;; Start polybar panel
+    (rfh/start-panel)
+
     )
 
   (use-package exwm
@@ -30,11 +61,14 @@
     (add-hook 'exwm-update-class-hook #'rfh/exwm-update-class)
 
     ;; Load the system tray before exwm-init
-    (require 'exwm-systemtray)
-    (exwm-systemtray-enable)
+    ;; (require 'exwm-systemtray)
+    ;; (exwm-systemtray-enable)
 
     ;; When EXWM starts up, do some extra confifuration
     (add-hook 'exwm-init-hook #'rfh/exwm-init-hook)
+
+    ;; Rebind CapsLock to Ctrl
+    (start-process-shell-command "xmodmap" nil "xmodmap ~/dotfiles/emacs/.emacs.d/exwm/Xmodmap")
 
     ;; These keys should always pass through to Emacs
     (setq exwm-input-prefix-keys
@@ -101,6 +135,7 @@
 
 * Desktop Environment
 
+
 ** Desktop Key Bindings
 
 #+begin_src emacs-lisp
@@ -114,5 +149,171 @@
   ;;   (desktop-environment-brightness-normal-increment "5%+")
   ;;   (desktop-environment-brightness-normal-decrement "5%-"))
 
+
+#+end_src
+
+** Keyboard Configuration
+
+The =Xmodmap= file will be used with the =xmodmap= program to remap CapsLock to Ctrl inside of our desktop environment:
+
+#+begin_src sh :tangle ./exwm/Xmodmap
+
+  clear lock
+  clear control
+  keycode 66 = Control_L
+  add control = Control_L
+  add Lock = Control_R
+
+#+end_src
+
+** Panel with Polybar
+
+Polybar provides a great, minimalistic panel for your EXWM desktop configuration.  The following config integrates =emacsclient= and Polybar with =polybar-msg= to enable you to gather *any* information from Emacs and display it in the panel! Check out the Polybar wiki for more details on how to configure it: https://github.com/polybar/polybar/wiki
+
+The configuration for our ingeniously named panel, "panel".  Invoke it with =polybar panel= on the command line!
+
+#+begin_src conf :tangle ~/dotfiles/polybar/.config/polybar/config
+
+  ; Docs: https://github.com/polybar/polybar
+  ;==========================================================
+
+  [settings]
+  screenchange-reload = true
+
+  [global/wm]
+  margin-top = 0
+  margin-bottom = 0
+
+  [colors]
+  background = #282828
+  background-alt = #3c3836
+  foreground = #fbf1c7
+  foreground-alt = #d5c4a1
+  primary = #458588
+  secondary = #8ec07c
+  alert = #d65d0e
+  underline-1 = #d3869b
+
+  [bar/panel]
+  width = 100%
+  height = 25
+  offset-x = 0
+  offset-y = 0
+  fixed-center = true
+  enable-ipc = true
+
+  background = ${colors.background}
+  foreground = ${colors.foreground}
+
+  line-size = 2
+  line-color = #458588
+
+  border-size = 0
+  border-color = #00000000
+
+  padding-top = 5
+  padding-left = 1
+  padding-right = 1
+
+  module-margin = 1
+
+  font-0 = "Fira Sans:size=13;2"
+  font-1 = "Font Awesome:size=13;2"
+  font-2 = "Material Icons:size=20;5"
+  font-3 = "Fira Mono:size=13;-3"
+
+  modules-left = exwm-workspace
+  modules-right = cpu temperature battery date
+
+  tray-position = right
+  tray-padding = 2
+  tray-maxsize = 28
+
+  cursor-click = pointer
+  cursor-scroll = ns-resize
+
+  [module/exwm-workspace]
+  type = custom/ipc
+  hook-0 = emacsclient -e "exwm-workspace-current-index" | sed -e 's/^"//' -e 's/"$//'
+  initial = 1
+  format-underline = ${colors.underline-1}
+  format-padding = 1
+
+  [module/cpu]
+  type = internal/cpu
+  interval = 2
+  format = <label> <ramp-coreload>
+  format-underline = ${colors.underline-1}
+  click-left = emacsclient -e "(proced)"
+  label = %percentage:2%%
+  ramp-coreload-spacing = 0
+  ramp-coreload-0 = ▁
+  ramp-coreload-0-foreground = ${colors.foreground-alt}
+  ramp-coreload-1 = ▂
+  ramp-coreload-2 = ▃
+  ramp-coreload-3 = ▄
+  ramp-coreload-4 = ▅
+  ramp-coreload-5 = ▆
+  ramp-coreload-6 = ▇
+
+  [module/date]
+  type = internal/date
+  interval = 5
+
+  date = "%a %b %e"
+  date-alt = "%A %B %d %Y"
+
+  time = %H:%M
+  time-alt = %H:%M:%S
+
+  format-prefix-foreground = ${colors.foreground-alt}
+  format-underline = ${colors.underline-1}
+
+  label = %date% %time%
+
+  [module/battery]
+  type = internal/battery
+  battery = BAT0
+  adapter = ADP1
+  full-at = 98
+  time-format = %-l:%M
+
+  label-charging = %percentage%% / %time%
+  format-charging = <animation-charging> <label-charging>
+  format-charging-underline = ${colors.underline-1}
+
+  label-discharging = %percentage%% / %time%
+  format-discharging = <ramp-capacity> <label-discharging>
+  format-discharging-underline = ${self.format-charging-underline}
+
+  format-full = <ramp-capacity> <label-full>
+  format-full-underline = ${self.format-charging-underline}
+
+  ramp-capacity-0 = 
+  ramp-capacity-1 = 
+  ramp-capacity-2 = 
+  ramp-capacity-3 = 
+  ramp-capacity-4 = 
+
+  animation-charging-0 = 
+  animation-charging-1 = 
+  animation-charging-2 = 
+  animation-charging-3 = 
+  animation-charging-4 = 
+  animation-charging-framerate = 750
+
+  [module/temperature]
+  type = internal/temperature
+  thermal-zone = 0
+  warn-temperature = 60
+
+  format = <label>
+  format-underline = ${colors.underline-1}
+  format-warn = <label-warn>
+  format-warn-underline = ${self.format-underline}
+
+  label = %temperature-c%
+  label-warn = %temperature-c%!
+  label-warn-foreground = ${colors.secondary}
 
 #+end_src

@@ -1,3 +1,28 @@
+(defvar rfh/polybar-process nil
+  "Holds the process of the running Polybar instance, if any")
+
+(defun rfh/kill-panel ()
+  (interactive)
+  (when rfh/polybar-process
+    (ignore-errors
+      (kill-process efs/polybar-process)))
+  (setq rfh/polybar-process nil))
+
+(defun rfh/start-panel ()
+  (interactive)
+  (rfh/kill-panel)
+  (setq rfh/polybar-process (start-process-shell-command "polybar" nil "polybar panel")))
+
+(defun rfh/send-polybar-hook (module-name hook-index)
+  (start-process-shell-command "polybar-msg" nil (format "polybar-msg hook %s %s" module-name hook-index)))
+
+(defun rfh/send-polybar-exwm-workspace ()
+  (rfh/send-polybar-hook "exwm-workspace" 1))
+
+;; Update panel indicator when workspace changes
+(add-hook 'exwm-workspace-switch-hook #'rfh/send-polybar-exwm-workspace)
+
+
 (defun rfh/exwm-update-class ()
   (exwm-workspace-rename-buffer exwm-class-name))
 
@@ -8,8 +33,13 @@
 (defun rfh/exwm-init-hook ()
   ;; Make workspace 1 be the one where we land at startup
   (exwm-workspace-switch-create 1)
+
   ;; Launch apps that will run in the background
-  ;; (rfh/run-in-background "dunst")
+  (rfh/run-in-background "nm-applet")
+
+  ;; Start polybar panel
+  (rfh/start-panel)
+
   )
 
 (use-package exwm
@@ -21,11 +51,14 @@
   (add-hook 'exwm-update-class-hook #'rfh/exwm-update-class)
 
   ;; Load the system tray before exwm-init
-  (require 'exwm-systemtray)
-  (exwm-systemtray-enable)
+  ;; (require 'exwm-systemtray)
+  ;; (exwm-systemtray-enable)
 
   ;; When EXWM starts up, do some extra confifuration
   (add-hook 'exwm-init-hook #'rfh/exwm-init-hook)
+
+  ;; Rebind CapsLock to Ctrl
+  (start-process-shell-command "xmodmap" nil "xmodmap ~/dotfiles/emacs/.emacs.d/exwm/Xmodmap")
 
   ;; These keys should always pass through to Emacs
   (setq exwm-input-prefix-keys

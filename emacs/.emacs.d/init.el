@@ -21,7 +21,7 @@
   (require 'use-package))
 
 (setq use-package-always-ensure t)
-(setq use-package-verbose t)
+;; (setq use-package-verbose t)
 
 (use-package auto-package-update
   :custom
@@ -32,6 +32,8 @@
   (auto-package-update-maybe)
   (auto-package-update-at-time "09:00")
 )
+
+(server-start)
 
 (if (daemonp)
     (message "Loading in the daemon!")
@@ -718,10 +720,11 @@ _SPC_ cancel	_o_nly this   	    _d_elete
 
 (rfh/leader-keys
     "fd"  '(:ignore t :which-key "edit dotfiles")
+    "fdd" '((lambda () (interactive) (find-file (expand-file-name "~/dotfiles/emacs/.emacs.d/desktop.org"))) :which-key "desktop")
     "fde" '((lambda () (interactive) (find-file (expand-file-name "~/dotfiles/emacs/.emacs.d/emacs.org"))) :which-key "emacs")
     "fdE" '((lambda () (interactive) (rfh/org-file-show-headings "~/dotfiles/emacs/.emacs.d/emacs.org")) :which-key "emacs (at heading)")
     "fdi" '((lambda () (interactive) (find-file (expand-file-name "~/dotfiles/wm/.i3/config"))) :which-key "i3")
-    "fdp" '((lambda () (interactive) (find-file (expand-file-name "~/dotfiles/wm/.config/polybar/config"))) :which-key "polybar")
+    ;; "fdp" '((lambda () (interactive) (find-file (expand-file-name "~/dotfiles/wm/.config/polybar/config"))) :which-key "polybar")
 )
 
 (use-package super-save
