@@ -223,8 +223,8 @@ To consolidate information about active and available minor-modes.
 
 #+begin_src emacs-lisp
 
-(use-package minions
-  :config (minions-mode 1))
+  (use-package minions
+    :config (minions-mode 1))
 
 #+end_src
 
@@ -232,10 +232,10 @@ To consolidate information about active and available minor-modes.
 
 #+begin_src emacs-lisp
 
-(use-package alert
-  :commands alert
-  :config
-  (setq alert-default-style 'notifications))
+  (use-package alert
+    :commands alert
+    :config
+    (setq alert-default-style 'notifications))
 
 #+end_src
 
@@ -414,24 +414,28 @@ https://github.com/Wilfred/helpful
 
 #+begin_src emacs-lisp
 
-(use-package ivy-bibtex
- :commands ivy-bibtex
- :config
- (setq bibtex-completion-bibliography-path '("~/Documents/Library/library.bib"))
- (setq bibtex-completion-library-path '("~/Documents/Library/"))
- (setq bibtex-dialect 'biblatex)
-)
+   (use-package ivy-bibtex
+    :commands ivy-bibtex
+    :config
+    (setq bibtex-completion-bibliography '("~/Documents/Library/library.bib"))
+    (setq bibtex-completion-library-path '("~/Documents/Library/"))
+    (setq bibtex-dialect 'biblatex)
+    (setq bibtex-completion-pdf-field "File")
+    )
 
-(autoload 'ivy-bibtex "ivy-bibtex" "" t)
-;; ivy-bibtex requires ivy's `ivy--regex-ignore-order` regex builder, which
-;; ignores the order of regexp tokens when searching for matching candidates.
-;; Add something like this to your init file:
-(setq ivy-re-builders-alist
-      '((ivy-bibtex . ivy--regex-ignore-order)
-        (t . ivy--regex-plus)))
 
-(advice-add 'bibtex-completion-candidates
-            :filter-return 'reverse)
+   ;; (autoload 'ivy-bibtex "ivy-bibtex" "" t)
+   (require 'ivy-bibtex)
+
+   ;; ivy-bibtex requires ivy's `ivy--regex-ignore-order` regex builder, which
+   ;; ignores the order of regexp tokens when searching for matching candidates.
+   ;; Add something like this to your init file:
+   (setq ivy-re-builders-alist
+         '((ivy-bibtex . ivy--regex-ignore-order)
+           (t . ivy--regex-plus)))
+
+   (advice-add 'bibtex-completion-candidates
+                :filter-return 'reverse)
 
 
 #+end_src
@@ -784,8 +788,8 @@ https://github.com/emacs-dashboard/emacs-dashboard
           (setq dashboard-set-init-info t)
           (setq dashboard-banner-logo-title "")
           (setq dashboard-center-content t)
-          ;; (add-to-list 'dashboard-items '(agenda) t)
-          ;; (setq dashboard-week-agenda t)
+          (add-to-list 'dashboard-items '(agenda) t)
+          (setq dashboard-week-agenda t)
           (setq dashboard-set-footer nil)
           (setq dashboard-set-navigator nil)
          )
@@ -1554,8 +1558,10 @@ T - tag prefix
 
 #+begin_src emacs-lisp
 
-(use-package pdf-tools
-  :defer t)
+  (use-package pdf-tools
+    :defer t)
+
+  (add-hook 'pdf-view-mode-hook (lambda () (pdf-view-midnight-minor-mode)))
 
 #+end_src
 

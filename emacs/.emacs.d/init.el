@@ -218,12 +218,16 @@
 (use-package ivy-bibtex
  :commands ivy-bibtex
  :config
- (setq bibtex-completion-bibliography-path '("~/Documents/Library/library.bib"))
+ (setq bibtex-completion-bibliography '("~/Documents/Library/library.bib"))
  (setq bibtex-completion-library-path '("~/Documents/Library/"))
  (setq bibtex-dialect 'biblatex)
-)
+ (setq bibtex-completion-pdf-field "File")
+ )
 
-(autoload 'ivy-bibtex "ivy-bibtex" "" t)
+
+;; (autoload 'ivy-bibtex "ivy-bibtex" "" t)
+(require 'ivy-bibtex)
+
 ;; ivy-bibtex requires ivy's `ivy--regex-ignore-order` regex builder, which
 ;; ignores the order of regexp tokens when searching for matching candidates.
 ;; Add something like this to your init file:
@@ -232,7 +236,7 @@
         (t . ivy--regex-plus)))
 
 (advice-add 'bibtex-completion-candidates
-            :filter-return 'reverse)
+             :filter-return 'reverse)
 
 (use-package counsel
   :bind (("M-x" . counsel-M-x)
@@ -470,8 +474,8 @@ _SPC_ cancel	_o_nly this   	    _d_elete
         (setq dashboard-set-init-info t)
         (setq dashboard-banner-logo-title "")
         (setq dashboard-center-content t)
-        ;; (add-to-list 'dashboard-items '(agenda) t)
-        ;; (setq dashboard-week-agenda t)
+        (add-to-list 'dashboard-items '(agenda) t)
+        (setq dashboard-week-agenda t)
         (setq dashboard-set-footer nil)
         (setq dashboard-set-navigator nil)
        )
@@ -933,6 +937,8 @@ T - tag prefix
 
 (use-package pdf-tools
   :defer t)
+
+(add-hook 'pdf-view-mode-hook (lambda () (pdf-view-midnight-minor-mode)))
 
 (use-package mu4e
   :ensure nil
