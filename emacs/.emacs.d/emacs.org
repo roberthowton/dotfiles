@@ -96,80 +96,38 @@ This file generates [[file:init.el][init.el]] which can be loaded by Emacs at st
 
 #+end_src
 
-* Startup Behavior
-** Loading emacs as daemon
-
-#+begin_src emacs-lisp
-
-  (server-start)
-
-#+end_src
-
-*** Daemonp function
-
-#+begin_src emacs-lisp
-
-  (if (daemonp)
-      (message "Loading in the daemon!")
-      (message "Loading standalone!"))
-
-#+end_src
-
-*** Setting frame parameters
-
-** Disable Default Startup Message
-
-#+begin_src emacs-lisp
-
-(setq inhibit-startup-message t)
-
-#+end_src
-
-* Startup Performance
-
-#+begin_src emacs-lisp
-
-  (defun rfh/display-startup-time ()
-    (message "Emacs loaded in %s with %d garbage collections."
-             (format "%.2f seconds"
-                     (float-time
-                     (time-subtract after-init-time before-init-time)))
-             gcs-done))
-
-  (add-hook 'emacs-startup-hook #'rfh/display-startup-time)
-
-#+end_src
-
 * UI Configuration
 ** Basic UI Configuration
 
 #+begin_src emacs-lisp
 
-(scroll-bar-mode -1)    ; disable visible scrollbar
-(tool-bar-mode -1)      ; disable the toolbar
-(tooltip-mode -1)       ; disable tooltips
-(set-fringe-mode 10)    ; give some breathing room
-(menu-bar-mode -1)      ; disable the menu bar
+  (scroll-bar-mode -1)            ; disable visible scrollbar
+  (tool-bar-mode -1)              ; disable the toolbar
+  (tooltip-mode -1)               ; disable tooltips
+  (set-fringe-mode 10)            ; give some breathing room
+  (menu-bar-mode -1)              ; disable the menu bar
+  (setq frame-resize-pixelwise t) ; maximize frame without gaps
+  (setq visible-bell t)           ; set up visible bell
 
-(setq visible-bell t)    ; set up visible bell
-
-(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+  (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
 #+end_src
 
-*** TODO Font Faces
+*** Set Font Faces
 
 #+begin_src emacs-lisp
-(defvar rfh/default-font-size 140)
-(defvar rfh/default-variable-font-size 140)
+  (defvar rfh/default-font-size 140)
+  (defvar rfh/default-variable-font-size 140)
 
-(set-face-attribute 'default nil :font "Fira Code" :height rfh/default-font-size)
+  (defun rfh/set-font-faces ()
+    (message "Setting faces!")
+    (set-face-attribute 'default nil :font "Fira Code" :height rfh/default-font-size)
 
-;; Set the fixed pitch face
-(set-face-attribute 'fixed-pitch nil :font "Fira Code" :height rfh/default-font-size)
+    ;; Set the fixed pitch face
+    (set-face-attribute 'fixed-pitch nil :font "Fira Code" :height rfh/default-font-size)
 
-;; Set the variable pitch face
-(set-face-attribute 'variable-pitch nil :font "Fira Sans" :height rfh/default-font-size :weight 'light)
+    ;; Set the variable pitch face
+    (set-face-attribute 'variable-pitch nil :font "Fira Sans" :height rfh/default-variable-font-size :weight 'light))
 
 #+end_src
 
@@ -414,28 +372,29 @@ https://github.com/Wilfred/helpful
 
 #+begin_src emacs-lisp
 
-   (use-package ivy-bibtex
-    :commands ivy-bibtex
-    :config
-    (setq bibtex-completion-bibliography '("~/Documents/Library/library.bib"))
-    (setq bibtex-completion-library-path '("~/Documents/Library/"))
-    (setq bibtex-dialect 'biblatex)
-    (setq bibtex-completion-pdf-field "File")
-    )
+  (use-package ivy-bibtex
+   :commands ivy-bibtex
+   :config
+   (setq bibtex-completion-bibliography '("~/Documents/Library/library.bib"))
+   (setq bibtex-completion-library-path '("~/Documents/Library/"))
+   ;; (setq bibtex-dialect 'biblatex)
+   (setq ivy-bibtex-default-action 'ivy-bibtex-open-pdf)
+   (setq bibtex-completion-pdf-field "File")
+   )
 
 
-   ;; (autoload 'ivy-bibtex "ivy-bibtex" "" t)
-   (require 'ivy-bibtex)
+  ;; (autoload 'ivy-bibtex "ivy-bibtex" "" t)
+  (require 'ivy-bibtex)
 
-   ;; ivy-bibtex requires ivy's `ivy--regex-ignore-order` regex builder, which
-   ;; ignores the order of regexp tokens when searching for matching candidates.
-   ;; Add something like this to your init file:
-   (setq ivy-re-builders-alist
-         '((ivy-bibtex . ivy--regex-ignore-order)
-           (t . ivy--regex-plus)))
+  ;; ivy-bibtex requires ivy's `ivy--regex-ignore-order` regex builder, which
+  ;; ignores the order of regexp tokens when searching for matching candidates.
+  ;; Add something like this to your init file:
+  (setq ivy-re-builders-alist
+        '((ivy-bibtex . ivy--regex-ignore-order)
+          (t . ivy--regex-plus)))
 
-   (advice-add 'bibtex-completion-candidates
-                :filter-return 'reverse)
+  (advice-add 'bibtex-completion-candidates
+               :filter-return 'reverse)
 
 
 #+end_src
@@ -490,6 +449,20 @@ https://github.com/Wilfred/helpful
 
 #+end_src
 
+*** Marginalia and Embark
+
+#+begin_src emacs-lisp
+
+(use-package marginalia
+  :config
+  (marginalia-mode))
+
+(use-package embark
+  :bind
+  ("C-S-a" . embark-act))              ; pick some comfortable binding
+
+#+end_src
+
 ** Keybinding Configuration
 *** General
 
@@ -513,7 +486,7 @@ https://github.com/Wilfred/helpful
   :init
   (setq evil-want-integration t)
   (setq evil-want-keybinding nil)
-  (setq evil-want-C-u-scroll t)
+  (setq evil-want-C-u-scroll nil)
   (setq evil-want-C-i-jump nil)
   :config
   (evil-mode 1)
@@ -539,9 +512,10 @@ https://github.com/Wilfred/helpful
 
 #+begin_src emacs-lisp
 
-  (rfh/leader-keys
-    "T"  '(:ignore t :which-key "toggles")
-    "Tt" '(counsel-load-theme :which-key "choose theme"))
+    (rfh/leader-keys
+      "T"  '(:ignore t :which-key "toggles")
+      "Tt" '(counsel-load-theme :which-key "choose theme")
+      "Tm" '(toggle-frame-maximized :which-key "toggle maximize frame"))
 
 #+end_src
 
@@ -578,7 +552,7 @@ https://github.com/Wilfred/helpful
     "wD"    '(delete-other-windows :which-key "delete other windows")
     "b"     '(:ignore t :which-key "buffers")
     "bb"    '(ivy-switch-buffer :which-key "switch buffer")
-    "bd"    '(kill-this-buffer :which-key "kill current buffer")
+    "bd"    '(kill-current-buffer :which-key "kill current buffer")
     "bD"    '(kill-buffer :which-key "kill buffer")
     "B"     '(ivy-bibtex :which-key "bibliography")
    )
@@ -609,6 +583,52 @@ https://github.com/Wilfred/helpful
     :commands alert
     :config
     (setq alert-default-style 'notifications))
+
+#+end_src
+
+* Startup Behavior
+** Loading emacs as daemon
+
+#+begin_src emacs-lisp
+
+  ;; (server-start)
+
+#+end_src
+
+*** Setting Frame Parameters
+
+#+begin_src emacs-lisp
+
+(if (daemonp)
+    (add-hook 'after-make-frame-functions
+              (lambda (frame)
+                ;; (setq doom-modeline-icon t)
+                (with-selected-frame frame
+                  (rfh/set-font-faces))))
+    (rfh/set-font-faces))
+
+#+end_src
+
+** Disable Default Startup Message
+
+#+begin_src emacs-lisp
+
+(setq inhibit-startup-message t)
+
+#+end_src
+
+* Startup Performance
+
+#+begin_src emacs-lisp
+
+  (defun rfh/display-startup-time ()
+    (message "Emacs loaded in %s with %d garbage collections."
+             (format "%.2f seconds"
+                     (float-time
+                     (time-subtract after-init-time before-init-time)))
+             gcs-done))
+
+  (add-hook 'emacs-startup-hook #'rfh/display-startup-time)
 
 #+end_src
 
@@ -947,7 +967,7 @@ Sets the background of HTML color strings in buffers to be the color mentioned.
   (rfh/leader-keys
     "e"   '(:ignore t :which-key "eval")
     "eb"  '(eval-buffer :which-key "eval buffer")
-    "ei"  '((lambda () (interactive) (load-file (expand-file-name "~/dotfiles/emacs/.emacs.d/init.el"))) :which-key "eval init.el"))
+    "eI"  '((lambda () (interactive) (load-file (expand-file-name "~/dotfiles/emacs/.emacs.d/init.el"))) :which-key "eval init.el"))
   (rfh/leader-keys
     :keymaps '(visual)
     "er" '(eval-region :which-key "eval region"))
@@ -975,6 +995,7 @@ Sets the background of HTML color strings in buffers to be the color mentioned.
     (add-hook 'markdown-mode-hook 'rfh/markdown-mode-hook))
 
 #+end_src
+
 *** HTML
 
 #+begin_src emacs-lisp
@@ -995,6 +1016,7 @@ Sets the background of HTML color strings in buffers to be the color mentioned.
   :ensure t)
 
 #+end_src
+
 *** YAML
 
 #+begin_src emacs-lisp
@@ -1237,6 +1259,16 @@ Sets the background of HTML color strings in buffers to be the color mentioned.
 
 #+end_src
 
+*** Periodically Save Recent File List
+
+#+begin_src emacs-lisp
+
+(run-at-time (current-time) 300 'recentf-save-list)
+(setq recentf-max-saved-items 50)
+(setq recentf-max-menu-items 50)
+
+#+end_src
+
 ** Deletion Behavior
 
 #+begin_src emacs-lisp
@@ -1377,7 +1409,7 @@ Dired is a built-in file manager for Emacs that does some pretty amazing things!
       "H" 'dired-hide-dotfiles-mode))
 
   (rfh/leader-keys
-  "D" '(dired :which-key "dired"))
+  "d" '(dired :which-key "dired"))
 #+end_src
 
 *** Dired Hydra
@@ -1576,7 +1608,7 @@ T - tag prefix
 (use-package mu4e
   :ensure nil
   :defer 20
-  :load-path "/home/rfh/.guix-profile/share/emacs/site-lisp/"
+  ;; :load-path "/home/rfh/.guix-profile/share/emacs/site-lisp/"
   :config
 
   ;; Refresh mail using isync every 10 minutes
@@ -1627,10 +1659,10 @@ T - tag prefix
 			    (string= (mu4e-message-field msg :maildir) "/personal")))
           :vars '(  ( user-mail-address      . "robert.f.howton@gmail.com"  )
             ( user-full-name     . "Robert Howton" )
-            ( mu4e-compose-signature .
-            (concat
-              "Robert Howton\n"
-              "roberthowton.com\n"))
+            ;; ( mu4e-compose-signature .
+            ;; (concat
+            ;;   "Robert Howton\n"
+            ;;   "roberthowton.com\n"))
               ;; (org-msg-signature "
 
 
@@ -1658,13 +1690,13 @@ T - tag prefix
 			            (string= (mu4e-message-field msg :maildir) "/ku")))
            :vars '(  ( user-mail-address      . "rhowton@ku.edu.tr" )
              ( user-full-name     . "Robert Howton" )
-             ( mu4e-compose-signature .
-             (concat
-               "Robert Howton\n"
-               "Assistant Professor\n"
-               "Department of Philosophy\n"
-               "Koç University\n\n"
-               "roberthowton.com"))
+             ;; ( mu4e-compose-signature .
+             ;; (concat
+             ;;   "Robert Howton\n"
+             ;;   "Assistant Professor\n"
+             ;;   "Department of Philosophy\n"
+             ;;   "Koç University\n\n"
+             ;;   "roberthowton.com"))
                (mu4e-drafts-folder . "/ku/[Gmail].Drafts")
                (mu4e-sent-folder   . "/ku/[Gmail].Sent Mail")
                (mu4e-trash-folder  . "/ku/[Gmail].Trash")
@@ -1713,7 +1745,7 @@ T - tag prefix
   :config
   (setq org-msg-options "html-postamble:nil H:5 num:nil ^:{} toc:nil author:nil email:nil \\n:t"
         org-msg-startup "hidestars indent inlineimages"
-        org-msg-greeting-fmt "\nHi *%s*,\n\n"
+        org-msg-greeting-fmt "\nHi %s,\n\n"
         org-msg-recipient-names '(("robert.f.howton@gmail.com" . "Robbie") ("rhowton@ku.edu.tr" . "Robert"))
         org-msg-greeting-name-limit 3
         org-msg-default-alternatives '(text html)
@@ -1745,7 +1777,7 @@ roberthowton.com
  (setq deft-directory "~/projects/org"))
 
 (rfh/leader-keys
- "d" '(deft :which-key "deft"))
+ "D" '(deft :which-key "deft"))
 
 #+end_src
 
@@ -1790,9 +1822,9 @@ Workaround for inaccessible pinentry dialogue in exwm. (Make sure you have =pine
                              (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
 
   ;; Set faces for heading levels
-  (dolist (face '((org-level-1 . 1.2)
-                  (org-level-2 . 1.1)
-                  (org-level-3 . 1.05)
+  (dolist (face '((org-level-1 . 1.4)
+                  (org-level-2 . 1.3)
+                  (org-level-3 . 1.2)
                   (org-level-4 . 1.0)
                   (org-level-5 . 1.1)
                   (org-level-6 . 1.1)
@@ -1815,46 +1847,73 @@ Workaround for inaccessible pinentry dialogue in exwm. (Make sure you have =pine
 
 #+begin_src emacs-lisp
 
-(defun rfh/org-mode-setup ()
-  (org-indent-mode)
-  (variable-pitch-mode 1)
-  (visual-line-mode 1))
+  (defun rfh/org-mode-setup ()
+    (org-indent-mode)
+    (variable-pitch-mode 1)
+    (visual-line-mode 1))
 
-(use-package org
-  :hook (org-mode . rfh/org-mode-setup)
-  :config
-  (setq org-ellipsis " ▾"
-        org-hide-emphasis-markers t
-        org-src-fontify-natively t
-        org-src-tab-acts-natively t
-        org-edit-src-content-indentation 2
-        org-src-preserve-indentation nil
-        org-startup-folded 'content
-        org-cycle-separator-lines 2)
-  (rfh/org-font-setup))
+  (use-package org
+    :hook (org-mode . rfh/org-mode-setup)
+    :config
+    (setq org-ellipsis " ▾"
+          org-hide-emphasis-markers t
+          org-src-fontify-natively t
+          org-src-tab-acts-natively t
+          org-edit-src-content-indentation 2
+          org-src-preserve-indentation nil
+          org-startup-folded 'content
+          org-cycle-separator-lines 2)
+    (rfh/org-font-setup))
 
-(with-eval-after-load 'org
+  (with-eval-after-load 'org
 
-  (rfh/leader-keys
-    "o" '(:ignore t :which-key "org-mode"))
+    (rfh/leader-keys
+      "o"  '(:ignore t :which-key "org-mode")
+      "oe" '(org-export-dispatch :which-key "export")
+      "c"  '(org-capture :which-key "org-capture")
+      "r"  '(:ignore t :which-key "org-roam")
+      ;; "ri" '()
+      )
 
-  (setq org-directory "~/projects/org")
+    (setq org-directory "~/projects/org")
 
-  (setq org-default-notes-file (concat org-directory "/notes.org"))
+    (setq org-default-notes-file (concat org-directory "/notes.org"))
 
-  (setq org-todo-keywords
-            '((sequence "TODO(t)" "WAITING(w)" "|" "DONE(D)" "CANCELLED(C)")
-            (sequence "BUY(b)" "|" "BOUGHT(B)")
-            (sequence "MEET(m)" "|" "MET(M)" "POSTPONED(P)"))
-            )
+    (setq org-todo-keywords
+              '((sequence "TODO(t)" "WAITING(w)" "|" "DONE(D)" "CANCELLED(C)")
+              (sequence "BUY(b)" "|" "BOUGHT(B)")
+              (sequence "MEET(m)" "|" "MET(M)" "POSTPONED(P)"))
+              )
 
 #+end_src
 
-** Export Settings
+** Org-Export
 
 #+begin_src emacs-lisp
 
-(setq org-export-with-smart-quotes t)
+  (setq org-export-with-smart-quotes t)
+
+#+end_src
+
+*** Ox-Hugo
+
+Requires hugo.
+
+#+begin_src emacs-lisp
+
+  (use-package ox-hugo
+    :after ox)
+
+#+end_src
+
+*** Ox-Pandoc
+
+Requires pandoc.
+
+#+begin_src emacs-lisp
+
+  (use-package ox-pandoc
+    :after ox)
 
 #+end_src
 
@@ -1900,81 +1959,84 @@ Workaround for inaccessible pinentry dialogue in exwm. (Make sure you have =pine
 
 #+begin_src emacs-lisp
 
-(setq org-capture-templates
-        '(("n" "Capture note")
-          ("ns" "Capture simple note" entry
-           (file+headline "notes.org" "Needs Review")
-           "* %? %^G\n :PROPERTIES:\n :CAPTURED: %U\n :END:\n\n")
-          ("nc" "Capture note with clipboard" entry
-           (file+headline "notes.org" "Needs Review")
-           "* %? %^G\n :PROPERTIES:\n :CAPTURED: %U\n :END:\n\n %x")
-          ("t" "Capture task")
-          ("ts" "Capture simple task" entry
-           (file+headline "tasks.org" "Quick Tasks")
-           "* TODO %? %^G\n :PROPERTIES:\n :CAPTURED: %U\n :END:\n\n")
-          ("tc" "Capture task with clipboard" entry
-           (file+headline "tasks.org" "Quick Tasks")
-           "* TODO %? %^G\n :PROPERTIES:\n :CAPTURED: %U\n :END:\n\n %x")
-          ;; ("T" "Schedule task")
-          ("tt" "Schedule task due today" entry
-           (file+headline "tasks.org" "Scheduled Tasks")
-           "* TODO %? %^G\n :PROPERTIES:\n :DEADLINE: %t\n :CAPTURED: %U\n :END:\n\n")
-          ("tl" "Schedule task due later than today" entry
-           (file+headline "tasks.org" "Scheduled Tasks")
-           "* TODO %? %^G\n :PROPERTIES:\n :DEADLINE: %^T\n :CAPTURED: %U\n :END:\n\n")
-          ("m" "Schedule meeting")
-          ("me" "Schedule event or conference" entry
-           (file+headline "meetings.org" "Events and Conferences")
-           "* MEET for %^{Title of or conference} %^G\n :PROPERTIES:\n :SCHEDULED: %^t\n :CAPTURED: %U\n :END:\n\n %?")
-          ("mm" "Schedule meeting" entry
-           (file+headline "meetings.org" "Meetings")
-           "* MEET on %^{Topic of meeting?} %^G\n :PROPERTIES:\n :SCHEDULED: %^T\n :CAPTURED: %U\n :END:\n\n %?")
-          ("mw" "Schedule work appointment" entry
-           (file+headline "meetings.org" "Work Appointments")
-           "* MEET with %^{Meeting with whom?} %^G\n :PROPERTIES:\n :SCHEDULED: %^T\n :CAPTURED: %U\n :END:\n\n %?")
-          ("mp" "Schedule personal appointment" entry
-           (file+headline "meetings.org" "Personal Appointments")
-           "* MEET with %^{Meeting with whom?} %^G\n :PROPERTIES:\n :SCHEDULED: %^T\n :CAPTURED: %U\n :END:\n\n %?")
-          ("s" "Add to shopping list")
-          ("sn" "Need to buy")
-          ("sng" "Groceries" entry
-           (file+headline "shopping.org" "Groceries, Etc.")
-           "* BUY %^{What do you need?} %^G\n :PROPERTIES:\n :CAPTURED: %U\n :END:\n\n %?")
-          ("sno" "Other necessary items" entry
-           (file+headline "shopping.org" "Other Needs")
-           "* BUY %^{What do you need?} %^G\n :PROPERTIES:\n :CAPTURED: %U\n :END:\n\n %?")
-          ("sw" "Want to buy"
-            (file+headline "shopping.org" "Wants")
-            "* BUY %^{What do you want?} %^G\n :PROPERTIES:\n :CAPTURED: %U\n :END:\n\n %?")
-          ("sg" "Gift"
-           (file+headline "shopping.org" "Gifts")
-           "* BUY %^{What do you want to give?} for %^{For whom?} %^G\n :PROPERTIES:\n :CAPTURED: %U\n :END:\n\n %?")
-          ("e" "Email capture")
-          ("et" "Capture mail task" entry
-           (file+headline "tasks.org" "Mail-Oriented Tasks")
-           "* TODO %:subject %^G:mail:\n SCHEDULED: %t\n :PROPERTIES:\n :CONTEXT: %a\n :END:\n\n %i %?")
-          ("en" "Capture mail note" entry
-           (file+headline "notes.org" "Needs Review")
-           "* %:subject %^G:mail:\n :PROPERTIES:\n :CONTEXT: %a\n :END:\n\n %i %?")
-          ("em" "Capture mail meeting" entry
-           (file+headline "meetings.org" "Refile")
-           "* MEET with %^{Meeting with whom?} on %^{Topic of meeting?} %:subject %^G:mail:\n SCHEDULED: %t\n :PROPERTIES:\n :CONTEXT: %a\n :END:\n\n %i %?")
-          ("a" "Create Anki flashcard")
-          ("ar" "Create Basic (and reversed card) flashcard" entry
-           (file+headline "anki.org" "Turkish")
-           "*** Item %^g\n :PROPERTIES:\n :ANKI_NOTE_TYPE: Basic (and reversed card)\n :END:\n\n **** Front\n\n %^{What is the expression?}\n\n **** Back\n\n %^{What does it mean?}\n\n"
+  (setq org-capture-templates
+          '(("n" "Capture note")
+            ("ns" "Capture simple note" entry
+             (file+headline "notes.org" "Needs Review")
+             "* %? %^G\n :PROPERTIES:\n :CAPTURED: %U\n :END:\n\n")
+            ("nc" "Capture note with clipboard" entry
+             (file+headline "notes.org" "Needs Review")
+             "* %? %^G\n :PROPERTIES:\n :CAPTURED: %U\n :END:\n\n %x")
+            ("t" "Capture task")
+            ("ts" "Capture simple task" entry
+             (file+headline "tasks.org" "Quick Tasks")
+             "* TODO %? %^G\n :PROPERTIES:\n :CAPTURED: %U\n :END:\n\n")
+            ("tc" "Capture task with clipboard" entry
+             (file+headline "tasks.org" "Quick Tasks")
+             "* TODO %? %^G\n :PROPERTIES:\n :CAPTURED: %U\n :END:\n\n %x")
+            ;; ("T" "Schedule task")
+            ("tt" "Schedule task due today" entry
+             (file+headline "tasks.org" "Scheduled Tasks")
+             "* TODO %? %^G\n :PROPERTIES:\n :DEADLINE: %t\n :CAPTURED: %U\n :END:\n\n")
+            ("tl" "Schedule task due later than today" entry
+             (file+headline "tasks.org" "Scheduled Tasks")
+             "* TODO %? %^G\n :PROPERTIES:\n :DEADLINE: %^T\n :CAPTURED: %U\n :END:\n\n")
+            ("m" "Schedule meeting")
+            ("me" "Schedule event or conference" entry
+             (file+headline "meetings.org" "Events and Conferences")
+             "* MEET for %^{Title of or conference} %^G\n :PROPERTIES:\n :SCHEDULED: %^t\n :CAPTURED: %U\n :END:\n\n %?")
+            ("mm" "Schedule meeting" entry
+             (file+headline "meetings.org" "Meetings")
+             "* MEET on %^{Topic of meeting?} %^G\n :PROPERTIES:\n :SCHEDULED: %^T\n :CAPTURED: %U\n :END:\n\n %?")
+            ("mw" "Schedule work appointment" entry
+             (file+headline "meetings.org" "Work Appointments")
+             "* MEET with %^{Meeting with whom?} %^G\n :PROPERTIES:\n :SCHEDULED: %^T\n :CAPTURED: %U\n :END:\n\n %?")
+            ("mp" "Schedule personal appointment" entry
+             (file+headline "meetings.org" "Personal Appointments")
+             "* MEET with %^{Meeting with whom?} %^G\n :PROPERTIES:\n :SCHEDULED: %^T\n :CAPTURED: %U\n :END:\n\n %?")
+            ("s" "Add to shopping list")
+            ("sn" "Need to buy")
+            ("sng" "Groceries" entry
+             (file+headline "shopping.org" "Groceries, Etc.")
+             "* BUY %^{What do you need?} %^G\n :PROPERTIES:\n :CAPTURED: %U\n :END:\n\n %?")
+            ("sno" "Other necessary items" entry
+             (file+headline "shopping.org" "Other Needs")
+             "* BUY %^{What do you need?} %^G\n :PROPERTIES:\n :CAPTURED: %U\n :END:\n\n %?")
+            ("sw" "Want to buy"
+              (file+headline "shopping.org" "Wants")
+              "* BUY %^{What do you want?} %^G\n :PROPERTIES:\n :CAPTURED: %U\n :END:\n\n %?")
+            ("sg" "Gift"
+             (file+headline "shopping.org" "Gifts")
+             "* BUY %^{What do you want to give?} for %^{For whom?} %^G\n :PROPERTIES:\n :CAPTURED: %U\n :END:\n\n %?")
+            ("e" "Email capture")
+            ("et" "Capture mail task" entry
+             (file+headline "tasks.org" "Mail-Oriented Tasks")
+             "* TODO %:subject %^G:mail:\n SCHEDULED: %t\n :PROPERTIES:\n :CONTEXT: %a\n :END:\n\n %i %?")
+            ("en" "Capture mail note" entry
+             (file+headline "notes.org" "Needs Review")
+             "* %:subject %^G:mail:\n :PROPERTIES:\n :CONTEXT: %a\n :END:\n\n %i %?")
+            ("em" "Capture mail meeting" entry
+             (file+headline "meetings.org" "Refile")
+             "* MEET with %^{Meeting with whom?} on %^{Topic of meeting?} %:subject %^G:mail:\n SCHEDULED: %t\n :PROPERTIES:\n :CONTEXT: %a\n :END:\n\n %i %?")
+            ("a" "Create Anki flashcard")
+            ("ar" "Create Basic (and reversed card) flashcard" entry
+             (file+headline "anki.org" "Turkish")
+             "*** Item %^g\n :PROPERTIES:\n :ANKI_NOTE_TYPE: Basic (and reversed card)\n :END:\n\n **** Front\n\n %^{What is the expression?}\n\n **** Back\n\n %^{What does it mean?}\n\n"
+             )
+            ("p" "Protocol" entry
+             (file+headline "notes.org" "Needs Review")
+             "* %^{Title}\nSource: %u, %c\n #+BEGIN_QUOTE\n%i\n#+END_QUOTE\n\n\n%?")
+            ("L" "Protocol Link" entry
+             (file+headline "notes.org" "Needs Review")
+             "* %? [[%:link][%:description]] \nCaptured On: %U")
            )
-          ("p" "Protocol" entry
-           (file+headline "notes.org" "Needs Review")
-           "* %^{Title}\nSource: %u, %c\n #+BEGIN_QUOTE\n%i\n#+END_QUOTE\n\n\n%?")
-	        ("L" "Protocol Link" entry
-           (file+headline "notes.org" "Needs Review")
-           "* %? [[%:link][%:description]] \nCaptured On: %U")
-         )
-        )
-  (setq org-capture-templates-contexts
-        '(("e" ((in-mode . "mu4e-headers-mode")
-                (in-mode . "mu4e-view-mode")))))
+          )
+    (setq org-capture-templates-contexts
+          '(("e" ((in-mode . "mu4e-headers-mode")
+                  (in-mode . "mu4e-view-mode")))))
+
+
+
 
 #+end_src
 
@@ -2105,16 +2167,40 @@ Check these lines for `org-agenda' config ideas: https://github.com/daviwil/emac
 #+end_src
 
 ** Configure Org-Babel
+
+#+begin_src emacs-lisp
+
+(setq org-confirm-babel-evaluate nil)
+
+#+end_src
+
+#+RESULTS:
+
 *** Languages
 
 #+begin_src emacs-lisp
 
-(org-babel-do-load-languages
- 'org-babel-load-languages
- '((emacs-lisp . t)
-   (python . t)))
+    (org-babel-do-load-languages
+     'org-babel-load-languages
+     '((emacs-lisp . t)
+       (python . t)
+       (mermaid . t)))
 
-(push '("conf-unix" . conf-unix) org-src-lang-modes)
+    (push '("conf-unix" . conf-unix) org-src-lang-modes)
+
+#+end_src
+
+*** Mermaid
+
+Requires mermaid-cli
+
+#+begin_src emacs-lisp
+
+  (use-package ob-mermaid
+    :after org
+    :config
+    (setq ob-mermaid-cli-path "/usr/bin/mmdc"))
+
 
 #+end_src
 
@@ -2157,6 +2243,6 @@ Automatically tangle =emacs.org= on save.
 
 #+begin_src emacs-lisp
 
-(load-file "~/.emacs.d/desktop.el")
+;; (load-file "~/.emacs.d/desktop.el")
 
 #+end_src

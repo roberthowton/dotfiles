@@ -33,43 +33,28 @@
   (auto-package-update-at-time "09:00")
 )
 
-(server-start)
-
-(if (daemonp)
-    (message "Loading in the daemon!")
-    (message "Loading standalone!"))
-
-(setq inhibit-startup-message t)
-
-(defun rfh/display-startup-time ()
-  (message "Emacs loaded in %s with %d garbage collections."
-           (format "%.2f seconds"
-                   (float-time
-                   (time-subtract after-init-time before-init-time)))
-           gcs-done))
-
-(add-hook 'emacs-startup-hook #'rfh/display-startup-time)
-
-(scroll-bar-mode -1)    ; disable visible scrollbar
-(tool-bar-mode -1)      ; disable the toolbar
-(tooltip-mode -1)       ; disable tooltips
-(set-fringe-mode 10)    ; give some breathing room
-(menu-bar-mode -1)      ; disable the menu bar
-
-(setq visible-bell t)    ; set up visible bell
+(scroll-bar-mode -1)            ; disable visible scrollbar
+(tool-bar-mode -1)              ; disable the toolbar
+(tooltip-mode -1)               ; disable tooltips
+(set-fringe-mode 10)            ; give some breathing room
+(menu-bar-mode -1)              ; disable the menu bar
+(setq frame-resize-pixelwise t) ; maximize frame without gaps
+(setq visible-bell t)           ; set up visible bell
 
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
 (defvar rfh/default-font-size 140)
 (defvar rfh/default-variable-font-size 140)
 
-(set-face-attribute 'default nil :font "Fira Code" :height rfh/default-font-size)
+(defun rfh/set-font-faces ()
+  (message "Setting faces!")
+  (set-face-attribute 'default nil :font "Fira Code" :height rfh/default-font-size)
 
-;; Set the fixed pitch face
-(set-face-attribute 'fixed-pitch nil :font "Fira Code" :height rfh/default-font-size)
+  ;; Set the fixed pitch face
+  (set-face-attribute 'fixed-pitch nil :font "Fira Code" :height rfh/default-font-size)
 
-;; Set the variable pitch face
-(set-face-attribute 'variable-pitch nil :font "Fira Sans" :height rfh/default-font-size :weight 'light)
+  ;; Set the variable pitch face
+  (set-face-attribute 'variable-pitch nil :font "Fira Sans" :height rfh/default-variable-font-size :weight 'light))
 
 (use-package emojify
   :hook (erc-mode . emojify-mode)
@@ -220,7 +205,8 @@
  :config
  (setq bibtex-completion-bibliography '("~/Documents/Library/library.bib"))
  (setq bibtex-completion-library-path '("~/Documents/Library/"))
- (setq bibtex-dialect 'biblatex)
+ ;; (setq bibtex-dialect 'biblatex)
+ (setq ivy-bibtex-default-action 'ivy-bibtex-open-pdf)
  (setq bibtex-completion-pdf-field "File")
  )
 
@@ -276,6 +262,14 @@
 (use-package company-box
   :hook (company-mode . company-box-mode))
 
+(use-package marginalia
+  :config
+  (marginalia-mode))
+
+(use-package embark
+  :bind
+  ("C-S-a" . embark-act))              ; pick some comfortable binding
+
 (use-package general
   :after evil
   :config
@@ -288,7 +282,7 @@
   :init
   (setq evil-want-integration t)
   (setq evil-want-keybinding nil)
-  (setq evil-want-C-u-scroll t)
+  (setq evil-want-C-u-scroll nil)
   (setq evil-want-C-i-jump nil)
   :config
   (evil-mode 1)
@@ -308,7 +302,8 @@
 
 (rfh/leader-keys
   "T"  '(:ignore t :which-key "toggles")
-  "Tt" '(counsel-load-theme :which-key "choose theme"))
+  "Tt" '(counsel-load-theme :which-key "choose theme")
+  "Tm" '(toggle-frame-maximized :which-key "toggle maximize frame"))
 
 (defhydra hydra-text-scale (:timeout 4)
   "scale text"
@@ -333,7 +328,7 @@
   "wD"    '(delete-other-windows :which-key "delete other windows")
   "b"     '(:ignore t :which-key "buffers")
   "bb"    '(ivy-switch-buffer :which-key "switch buffer")
-  "bd"    '(kill-this-buffer :which-key "kill current buffer")
+  "bd"    '(kill-current-buffer :which-key "kill current buffer")
   "bD"    '(kill-buffer :which-key "kill buffer")
   "B"     '(ivy-bibtex :which-key "bibliography")
  )
@@ -352,6 +347,27 @@
   :commands alert
   :config
   (setq alert-default-style 'notifications))
+
+;; (server-start)
+
+(if (daemonp)
+    (add-hook 'after-make-frame-functions
+              (lambda (frame)
+                ;; (setq doom-modeline-icon t)
+                (with-selected-frame frame
+                  (rfh/set-font-faces))))
+    (rfh/set-font-faces))
+
+(setq inhibit-startup-message t)
+
+(defun rfh/display-startup-time ()
+  (message "Emacs loaded in %s with %d garbage collections."
+           (format "%.2f seconds"
+                   (float-time
+                   (time-subtract after-init-time before-init-time)))
+           gcs-done))
+
+(add-hook 'emacs-startup-hook #'rfh/display-startup-time)
 
 (rfh/leader-keys
   "F"  '(:ignore t :which-key "frames")
@@ -551,7 +567,7 @@ _SPC_ cancel	_o_nly this   	    _d_elete
 (rfh/leader-keys
   "e"   '(:ignore t :which-key "eval")
   "eb"  '(eval-buffer :which-key "eval buffer")
-  "ei"  '((lambda () (interactive) (load-file (expand-file-name "~/dotfiles/emacs/.emacs.d/init.el"))) :which-key "eval init.el"))
+  "eI"  '((lambda () (interactive) (load-file (expand-file-name "~/dotfiles/emacs/.emacs.d/init.el"))) :which-key "eval init.el"))
 (rfh/leader-keys
   :keymaps '(visual)
   "er" '(eval-region :which-key "eval region"))
@@ -740,6 +756,10 @@ _SPC_ cancel	_o_nly this   	    _d_elete
 
 (global-auto-revert-mode 1)
 
+(run-at-time (current-time) 300 'recentf-save-list)
+(setq recentf-max-saved-items 50)
+(setq recentf-max-menu-items 50)
+
 (setq delete-by-moving-to-trash t)
 
 (use-package no-littering)
@@ -797,7 +817,7 @@ _SPC_ cancel	_o_nly this   	    _d_elete
     "H" 'dired-hide-dotfiles-mode))
 
 (rfh/leader-keys
-"D" '(dired :which-key "dired"))
+"d" '(dired :which-key "dired"))
 
 (defhydra hydra-dired (:hint nil :color pink)
   "
@@ -943,7 +963,7 @@ T - tag prefix
 (use-package mu4e
   :ensure nil
   :defer 20
-  :load-path "/home/rfh/.guix-profile/share/emacs/site-lisp/"
+  ;; :load-path "/home/rfh/.guix-profile/share/emacs/site-lisp/"
   :config
 
   ;; Refresh mail using isync every 10 minutes
@@ -994,10 +1014,10 @@ T - tag prefix
 			    (string= (mu4e-message-field msg :maildir) "/personal")))
           :vars '(  ( user-mail-address      . "robert.f.howton@gmail.com"  )
             ( user-full-name     . "Robert Howton" )
-            ( mu4e-compose-signature .
-            (concat
-              "Robert Howton\n"
-              "roberthowton.com\n"))
+            ;; ( mu4e-compose-signature .
+            ;; (concat
+            ;;   "Robert Howton\n"
+            ;;   "roberthowton.com\n"))
               ;; (org-msg-signature "
 
 
@@ -1025,13 +1045,13 @@ T - tag prefix
 			            (string= (mu4e-message-field msg :maildir) "/ku")))
            :vars '(  ( user-mail-address      . "rhowton@ku.edu.tr" )
              ( user-full-name     . "Robert Howton" )
-             ( mu4e-compose-signature .
-             (concat
-               "Robert Howton\n"
-               "Assistant Professor\n"
-               "Department of Philosophy\n"
-               "Koç University\n\n"
-               "roberthowton.com"))
+             ;; ( mu4e-compose-signature .
+             ;; (concat
+             ;;   "Robert Howton\n"
+             ;;   "Assistant Professor\n"
+             ;;   "Department of Philosophy\n"
+             ;;   "Koç University\n\n"
+             ;;   "roberthowton.com"))
                (mu4e-drafts-folder . "/ku/[Gmail].Drafts")
                (mu4e-sent-folder   . "/ku/[Gmail].Sent Mail")
                (mu4e-trash-folder  . "/ku/[Gmail].Trash")
@@ -1074,7 +1094,7 @@ T - tag prefix
   :config
   (setq org-msg-options "html-postamble:nil H:5 num:nil ^:{} toc:nil author:nil email:nil \\n:t"
         org-msg-startup "hidestars indent inlineimages"
-        org-msg-greeting-fmt "\nHi *%s*,\n\n"
+        org-msg-greeting-fmt "\nHi %s,\n\n"
         org-msg-recipient-names '(("robert.f.howton@gmail.com" . "Robbie") ("rhowton@ku.edu.tr" . "Robert"))
         org-msg-greeting-name-limit 3
         org-msg-default-alternatives '(text html)
@@ -1101,7 +1121,7 @@ roberthowton.com
  (setq deft-directory "~/projects/org"))
 
 (rfh/leader-keys
- "d" '(deft :which-key "deft"))
+ "D" '(deft :which-key "deft"))
 
 (use-package guix
   :defer t
@@ -1125,9 +1145,9 @@ roberthowton.com
                              (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
 
   ;; Set faces for heading levels
-  (dolist (face '((org-level-1 . 1.2)
-                  (org-level-2 . 1.1)
-                  (org-level-3 . 1.05)
+  (dolist (face '((org-level-1 . 1.4)
+                  (org-level-2 . 1.3)
+                  (org-level-3 . 1.2)
                   (org-level-4 . 1.0)
                   (org-level-5 . 1.1)
                   (org-level-6 . 1.1)
@@ -1165,7 +1185,12 @@ roberthowton.com
 (with-eval-after-load 'org
 
   (rfh/leader-keys
-    "o" '(:ignore t :which-key "org-mode"))
+    "o"  '(:ignore t :which-key "org-mode")
+    "oe" '(org-export-dispatch :which-key "export")
+    "c"  '(org-capture :which-key "org-capture")
+    "r"  '(:ignore t :which-key "org-roam")
+    ;; "ri" '()
+    )
 
   (setq org-directory "~/projects/org")
 
@@ -1178,6 +1203,12 @@ roberthowton.com
             )
 
 (setq org-export-with-smart-quotes t)
+
+(use-package ox-hugo
+  :after ox)
+
+(use-package ox-pandoc
+  :after ox)
 
 (use-package org-bullets
   :after org
@@ -1264,7 +1295,7 @@ roberthowton.com
           ("p" "Protocol" entry
            (file+headline "notes.org" "Needs Review")
            "* %^{Title}\nSource: %u, %c\n #+BEGIN_QUOTE\n%i\n#+END_QUOTE\n\n\n%?")
-	        ("L" "Protocol Link" entry
+          ("L" "Protocol Link" entry
            (file+headline "notes.org" "Needs Review")
            "* %? [[%:link][%:description]] \nCaptured On: %U")
          )
@@ -1357,12 +1388,20 @@ roberthowton.com
   (org-tree-slide-breadcrumbs " > ")
   (org-image-actual-width nil))
 
+(setq org-confirm-babel-evaluate nil)
+
 (org-babel-do-load-languages
  'org-babel-load-languages
  '((emacs-lisp . t)
-   (python . t)))
+   (python . t)
+   (mermaid . t)))
 
 (push '("conf-unix" . conf-unix) org-src-lang-modes)
+
+(use-package ob-mermaid
+  :after org
+  :config
+  (setq ob-mermaid-cli-path "/usr/bin/mmdc"))
 
 (defun rfh/org-babel-tangle-config ()
   (when (string-equal (file-name-directory (buffer-file-name))
@@ -1379,4 +1418,4 @@ roberthowton.com
 
 )
 
-(load-file "~/.emacs.d/desktop.el")
+;; (load-file "~/.emacs.d/desktop.el")
