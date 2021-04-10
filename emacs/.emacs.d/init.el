@@ -59,8 +59,7 @@
 )
 
 (use-package emojify
-  :hook (erc-mode . emojify-mode)
-  :commands emojify-mode)
+  :hook (after-init . global-emojify-mode))
 
 ;; (load-theme 'gruvbox-dark-hard t)
 
