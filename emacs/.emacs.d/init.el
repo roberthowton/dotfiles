@@ -44,17 +44,19 @@
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
 (defvar rfh/default-font-size 140)
-(defvar rfh/default-variable-font-size 140)
+  (defvar rfh/default-variable-font-size 140)
 
-(defun rfh/set-font-faces ()
-  (message "Setting faces!")
-  (set-face-attribute 'default nil :font "Fira Code" :height rfh/default-font-size)
+  (defun rfh/set-font-faces ()
+    (message "Setting faces!")
+    (set-face-attribute 'default nil :font "Fira Code" :height rfh/default-font-size)
 
-  ;; Set the fixed pitch face
-  (set-face-attribute 'fixed-pitch nil :font "Fira Code" :height rfh/default-font-size)
+    ;; Set the fixed pitch face
+    (set-face-attribute 'fixed-pitch nil :font "Fira Code" :height rfh/default-font-size)
 
-  ;; Set the variable pitch face
-  (set-face-attribute 'variable-pitch nil :font "Fira Sans" :height rfh/default-variable-font-size :weight 'light))
+    ;; Set the variable pitch face
+    (set-face-attribute 'variable-pitch nil :font "Fira Sans" :height rfh/default-variable-font-size :weight 'light)
+
+)
 
 (use-package emojify
   :hook (erc-mode . emojify-mode)
@@ -959,6 +961,14 @@ T - tag prefix
   :defer t)
 
 (add-hook 'pdf-view-mode-hook (lambda () (pdf-view-midnight-minor-mode)))
+
+(use-package elpher)
+
+(rfh/leader-keys
+  "i"  '(:ignore t :which-key "browse internet")
+  "iG" '(elpher :which-key "open elpher")
+  "ig" '(elpher-go :which-key "open with gemini")
+  "ie" '(eww :which-key "open with eww"))
 
 (use-package mu4e
   :ensure nil
