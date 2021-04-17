@@ -250,8 +250,8 @@
 
 (use-package company
   :diminish company-mode
-  ;; :bind (:map company-active-map
-   ;;  ("<tab>" . company-complete-selection))
+  :bind (:map company-active-map
+   ("<tab>" . company-complete-selection))
   :config
   (add-hook 'after-init-hook 'global-company-mode)
   (add-hook 'exwm-init-hook 'global-company-mode)
@@ -261,6 +261,15 @@
 
 (use-package company-box
   :hook (company-mode . company-box-mode))
+
+(defun text-mode-hook-setup ()
+  ;;make `company-backends` local
+  (make-local-variable 'company-backends)
+  ;;add `company-ispell` to `company-backends`
+  (add-to-list 'company-backends 'company-ispell)
+  (setq ispell-dictionary "english"))
+
+(add-hook 'text-mode-hook 'text-mode-hook-setup)
 
 (use-package marginalia
   :config
