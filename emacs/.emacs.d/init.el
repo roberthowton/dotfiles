@@ -55,7 +55,6 @@
 
     ;; Set the variable pitch face
     (set-face-attribute 'variable-pitch nil :font "Fira Sans" :height rfh/default-variable-font-size :weight 'light)
-
 )
 
 (use-package emojify
@@ -563,6 +562,30 @@ _SPC_ cancel	_o_nly this   	    _d_elete
          typescript-mode
          js2-mode))
 
+(use-package lsp-mode
+  :init
+  ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
+  ;; (setq lsp-keymap-prefix "C-c l")
+  :hook (;; replace XXX-mode with concrete major-mode(e. g. python-mode)
+         (js2-mode . lsp)
+         ;; if you want which-key integration
+         (lsp-mode . lsp-enable-which-key-integration))
+  :commands lsp)
+
+;; optionally
+(use-package lsp-ui :commands lsp-ui-mode)
+
+;; if you are ivy user
+(use-package lsp-ivy :commands lsp-ivy-workspace-symbol)
+(use-package lsp-treemacs :commands lsp-treemacs-errors-list)
+
+;; optionally if you want to use debugger
+(use-package dap-mode)
+;; (use-package dap-LANGUAGE) to load the dap adapter for your language
+
+(add-hook 'dap-stopped-hook
+          (lambda (arg) (call-interactively #'dap-hydra)))
+
 (add-hook 'emacs-lisp-mode-hook #'flycheck-mode)
 
 (rfh/leader-keys
@@ -572,6 +595,19 @@ _SPC_ cancel	_o_nly this   	    _d_elete
 (rfh/leader-keys
   :keymaps '(visual)
   "er" '(eval-region :which-key "eval region"))
+
+(use-package js2-mode
+:mode "\\.js\\'"
+:config)
+
+(use-package js2-refactor
+:hook (js2-mode . js2-refactor))
+
+(use-package xref-js2)
+
+(use-package ac-js2
+:config
+(add-to-list 'company-backends 'ac-js2-company))
 
 (use-package markdown-mode
   :mode "\\.md\\'"
@@ -957,9 +993,21 @@ T - tag prefix
 ;; )
 
 (use-package pdf-tools
-  :defer t)
+  :config
+  (pdf-tools-install)
+  (setq-default pdf-view-display-size 'fit-width)
+  (define-key pdf-view-mode-map (kbd "C-s") 'isearch-forward)
+  (add-hook 'pdf-view-mode-hook (lambda () (pdf-view-midnight-minor-mode)))
+  (add-hook 'pdf-view-mode-hook (lambda () (linum-mode -1)))
+  (setq TeX-view-program-selection '((output-pdf "PDF Tools"))
+        TeX-view-program-list '(("PDF Tools" TeX-pdf-tools-sync-view))
+        TeX-source-correlate-start-server t)
+  (add-hook 'TeX-after-compilation-finished-functions
+            #'TeX-revert-document-buffer)
+  :custom
+  (pdf-annot-activate-created-annotations t "automatically annotate highlights"))
 
-(add-hook 'pdf-view-mode-hook (lambda () (pdf-view-midnight-minor-mode)))
+(use-package gemini-mode)
 
 (use-package elpher)
 
@@ -1197,8 +1245,6 @@ roberthowton.com
     "o"  '(:ignore t :which-key "org-mode")
     "oe" '(org-export-dispatch :which-key "export")
     "c"  '(org-capture :which-key "org-capture")
-    "r"  '(:ignore t :which-key "org-roam")
-    ;; "ri" '()
     )
 
   (setq org-directory "~/projects/org")
@@ -1216,8 +1262,23 @@ roberthowton.com
 (use-package ox-hugo
   :after ox)
 
+(use-package ox-gemini
+  :after ox)
+
 (use-package ox-pandoc
   :after ox)
+
+(defun rfh/org-beamer-publish-to-pdf (plist filename pub-dir)
+  (org-beamer-publish-to-pdf plist filename (file-name-directory buffer-file-name)))
+
+
+(setq org-publish-project-alist
+      `(("org-lecture"
+         :base-directory (file-name-directory buffer-file-name)
+         :base-extension "org"
+         :exclude ("content.org")
+         :publishing-directory (file-name-directory buffer-file-name)
+         :publishing-function rfh/org-beamer-publish-to-pdf)))
 
 (use-package org-bullets
   :after org
@@ -1341,6 +1402,16 @@ roberthowton.com
      (after-init . org-roam-mode)
      :custom
      (org-roam-directory "~/projects/org/"))
+
+(rfh/leader-keys
+  "r"  '(:ignore t :which-key "org-roam")
+  "ri" '(org-roam-insert-immediate :which-key "insert immediate link")
+  "rI" '(org-roam-insert :which-key "insert link")
+  "rf" '(org-roam-find-file :which-key "find/create file")
+  "rr" '(org-roam-buffer-toggle-display :which-key "toggle org-roam buffer")
+  "r+" '(org-roam-tag-add :which-key "add org-roam tag")
+  "r-" '(org-roam-tag-delete :which-key "remove org-roam tag")
+  )
 
 (use-package org-noter
     :after (:any org pdf-view)

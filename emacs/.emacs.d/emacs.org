@@ -128,7 +128,6 @@ This file generates [[file:init.el][init.el]] which can be loaded by Emacs at st
 
       ;; Set the variable pitch face
       (set-face-attribute 'variable-pitch nil :font "Fira Sans" :height rfh/default-variable-font-size :weight 'light)
-
   )
 
 #+end_src
@@ -958,7 +957,36 @@ Sets the background of HTML color strings in buffers to be the color mentioned.
 
 ** Languages
 
-*** TODO LaTeX
+*** Enable LSP-mode & DAP-mode
+
+#+begin_src emacs-lisp
+
+  (use-package lsp-mode
+    :init
+    ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
+    ;; (setq lsp-keymap-prefix "C-c l")
+    :hook (;; replace XXX-mode with concrete major-mode(e. g. python-mode)
+           (js2-mode . lsp)
+           ;; if you want which-key integration
+           (lsp-mode . lsp-enable-which-key-integration))
+    :commands lsp)
+
+  ;; optionally
+  (use-package lsp-ui :commands lsp-ui-mode)
+
+  ;; if you are ivy user
+  (use-package lsp-ivy :commands lsp-ivy-workspace-symbol)
+  (use-package lsp-treemacs :commands lsp-treemacs-errors-list)
+
+  ;; optionally if you want to use debugger
+  (use-package dap-mode)
+  ;; (use-package dap-LANGUAGE) to load the dap adapter for your language
+
+  (add-hook 'dap-stopped-hook
+            (lambda (arg) (call-interactively #'dap-hydra)))
+
+#+end_src
+
 *** Emacs Lisp
 
 #+begin_src emacs-lisp
@@ -974,6 +1002,26 @@ Sets the background of HTML color strings in buffers to be the color mentioned.
     "er" '(eval-region :which-key "eval region"))
 
 #+end_src
+*** JavaScript
+
+#+begin_src emacs-lisp
+
+  (use-package js2-mode
+  :mode "\\.js\\'"
+  :config)
+
+  (use-package js2-refactor
+  :hook (js2-mode . js2-refactor))
+
+  (use-package xref-js2)
+
+  (use-package ac-js2
+  :config
+  (add-to-list 'company-backends 'ac-js2-company))
+
+#+end_src
+
+*** TODO LaTeX
 *** Markdown
 
 #+begin_src emacs-lisp
@@ -1592,9 +1640,20 @@ T - tag prefix
 #+begin_src emacs-lisp
 
   (use-package pdf-tools
-    :defer t)
+    :config
+    (pdf-tools-install)
+    (setq-default pdf-view-display-size 'fit-width)
+    (define-key pdf-view-mode-map (kbd "C-s") 'isearch-forward)
+    (add-hook 'pdf-view-mode-hook (lambda () (pdf-view-midnight-minor-mode)))
+    (add-hook 'pdf-view-mode-hook (lambda () (linum-mode -1)))
+    (setq TeX-view-program-selection '((output-pdf "PDF Tools"))
+          TeX-view-program-list '(("PDF Tools" TeX-pdf-tools-sync-view))
+          TeX-source-correlate-start-server t)
+    (add-hook 'TeX-after-compilation-finished-functions
+              #'TeX-revert-document-buffer)
+    :custom
+    (pdf-annot-activate-created-annotations t "automatically annotate highlights"))
 
-  (add-hook 'pdf-view-mode-hook (lambda () (pdf-view-midnight-minor-mode)))
 
 #+end_src
 
@@ -1602,17 +1661,19 @@ T - tag prefix
 
 ** Gemini
 
-Use elpher
+Syntaxi highlighting and browser for gemini internet protocol
 
 #+begin_src emacs-lisp
 
-(use-package elpher)
+  (use-package gemini-mode)
 
-(rfh/leader-keys
-  "i"  '(:ignore t :which-key "browse internet")
-  "iG" '(elpher :which-key "open elpher")
-  "ig" '(elpher-go :which-key "open with gemini")
-  "ie" '(eww :which-key "open with eww"))
+  (use-package elpher)
+
+  (rfh/leader-keys
+    "i"  '(:ignore t :which-key "browse internet")
+    "iG" '(elpher :which-key "open elpher")
+    "ig" '(elpher-go :which-key "open with gemini")
+    "ie" '(eww :which-key "open with eww"))
 
 
 #+end_src
@@ -1889,8 +1950,6 @@ Workaround for inaccessible pinentry dialogue in exwm. (Make sure you have =pine
       "o"  '(:ignore t :which-key "org-mode")
       "oe" '(org-export-dispatch :which-key "export")
       "c"  '(org-capture :which-key "org-capture")
-      "r"  '(:ignore t :which-key "org-roam")
-      ;; "ri" '()
       )
 
     (setq org-directory "~/projects/org")
@@ -1924,6 +1983,15 @@ Requires hugo.
 
 #+end_src
 
+*** Ox-Gemini
+
+#+begin_src emacs-lisp
+
+  (use-package ox-gemini
+    :after ox)
+
+#+end_src
+
 *** Ox-Pandoc
 
 Requires pandoc.
@@ -1932,6 +2000,25 @@ Requires pandoc.
 
   (use-package ox-pandoc
     :after ox)
+
+#+end_src
+
+** Org-Publish
+
+#+begin_src emacs-lisp
+
+
+  (defun rfh/org-beamer-publish-to-pdf (plist filename pub-dir)
+    (org-beamer-publish-to-pdf plist filename (file-name-directory buffer-file-name)))
+
+
+  (setq org-publish-project-alist
+        `(("org-lecture"
+           :base-directory (file-name-directory buffer-file-name)
+           :base-extension "org"
+           :exclude ("content.org")
+           :publishing-directory (file-name-directory buffer-file-name)
+           :publishing-function rfh/org-beamer-publish-to-pdf)))
 
 #+end_src
 
@@ -2103,11 +2190,21 @@ Check these lines for `org-agenda' config ideas: https://github.com/daviwil/emac
 
 #+begin_src emacs-lisp
 
- (use-package org-roam
-      :hook
-      (after-init . org-roam-mode)
-      :custom
-      (org-roam-directory "~/projects/org/"))
+  (use-package org-roam
+       :hook
+       (after-init . org-roam-mode)
+       :custom
+       (org-roam-directory "~/projects/org/"))
+
+  (rfh/leader-keys
+    "r"  '(:ignore t :which-key "org-roam")
+    "ri" '(org-roam-insert-immediate :which-key "insert immediate link")
+    "rI" '(org-roam-insert :which-key "insert link")
+    "rf" '(org-roam-find-file :which-key "find/create file")
+    "rr" '(org-roam-buffer-toggle-display :which-key "toggle org-roam buffer")
+    "r+" '(org-roam-tag-add :which-key "add org-roam tag")
+    "r-" '(org-roam-tag-delete :which-key "remove org-roam tag")
+    )
 
 #+end_src
 
