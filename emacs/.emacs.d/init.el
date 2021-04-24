@@ -250,8 +250,9 @@
 
 (use-package company
   :diminish company-mode
+  :defer nil
   :bind (:map company-active-map
-   ("<tab>" . company-complete-selection))
+   ("RET" . company-complete-selection))
   :config
   (add-hook 'after-init-hook 'global-company-mode)
   (add-hook 'exwm-init-hook 'global-company-mode)
@@ -615,6 +616,8 @@ _SPC_ cancel	_o_nly this   	    _d_elete
 (use-package xref-js2)
 
 (use-package ac-js2
+:defer t
+:hook (js2-mode . ac-js2)
 :config
 (add-to-list 'company-backends 'ac-js2-company))
 
@@ -1029,7 +1032,7 @@ T - tag prefix
 (use-package mu4e
   :ensure nil
   :defer 20
-  ;; :load-path "/home/rfh/.guix-profile/share/emacs/site-lisp/"
+  :load-path "/usr/share/emacs/site-lisp/"
   :config
 
   ;; Refresh mail using isync every 10 minutes
@@ -1251,9 +1254,10 @@ roberthowton.com
 (with-eval-after-load 'org
 
   (rfh/leader-keys
-    "o"  '(:ignore t :which-key "org-mode")
+    "o"   '(:ignore t :which-key "org-mode")
     "oe" '(org-export-dispatch :which-key "export")
-    "c"  '(org-capture :which-key "org-capture")
+    "os" '(org-edit-src-code :which-key "edit src block")
+    "c"   '(org-capture :which-key "org-capture")
     )
 
   (setq org-directory "~/projects/org")
