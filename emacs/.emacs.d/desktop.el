@@ -5,7 +5,7 @@
   (interactive)
   (when rfh/polybar-process
     (ignore-errors
-      (kill-process efs/polybar-process)))
+      (kill-process rfh/polybar-process)))
   (setq rfh/polybar-process nil))
 
 (defun rfh/start-panel ()
@@ -36,10 +36,20 @@
 
   ;; Launch apps that will run in the background
   (rfh/run-in-background "nm-applet")
-  (rfh/run-in-background "syncthing-gtk")
+  ;; (rfh/run-in-background "syncthing-gtk")
+  (rfh/run-in-background "nextcloud")
+  (rfh/run-in-background "pasystray")
 
   ;; Start polybar panel
-  (rfh/start-panel)
+  ;; (rfh/start-panel)
+
+  ;; Show battery status in the mode line
+  (display-battery-mode 1)
+
+  ;; Show the time and date in modeline
+  (setq display-time-day-and-date t)
+  (display-time-mode 1)
+
   )
 
 (use-package exwm
@@ -54,8 +64,8 @@
   (add-hook 'exwm-update-class-hook #'rfh/exwm-update-class)
 
   ;; Load the system tray before exwm-init
-  ;; (require 'exwm-systemtray)
-  ;; (exwm-systemtray-enable)
+  (require 'exwm-systemtray)
+  (exwm-systemtray-enable)
 
   ;; When EXWM starts up, do some extra confifuration
   (add-hook 'exwm-init-hook #'rfh/exwm-init-hook)

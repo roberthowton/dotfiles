@@ -15,7 +15,7 @@
     (interactive)
     (when rfh/polybar-process
       (ignore-errors
-        (kill-process efs/polybar-process)))
+        (kill-process rfh/polybar-process)))
     (setq rfh/polybar-process nil))
 
   (defun rfh/start-panel ()
@@ -46,10 +46,20 @@
 
     ;; Launch apps that will run in the background
     (rfh/run-in-background "nm-applet")
-    (rfh/run-in-background "syncthing-gtk")
+    ;; (rfh/run-in-background "syncthing-gtk")
+    (rfh/run-in-background "nextcloud")
+    (rfh/run-in-background "pasystray")
 
     ;; Start polybar panel
-    (rfh/start-panel)
+    ;; (rfh/start-panel)
+
+    ;; Show battery status in the mode line
+    (display-battery-mode 1)
+
+    ;; Show the time and date in modeline
+    (setq display-time-day-and-date t)
+    (display-time-mode 1)
+
     )
 
   (use-package exwm
@@ -64,8 +74,8 @@
     (add-hook 'exwm-update-class-hook #'rfh/exwm-update-class)
 
     ;; Load the system tray before exwm-init
-    ;; (require 'exwm-systemtray)
-    ;; (exwm-systemtray-enable)
+    (require 'exwm-systemtray)
+    (exwm-systemtray-enable)
 
     ;; When EXWM starts up, do some extra confifuration
     (add-hook 'exwm-init-hook #'rfh/exwm-init-hook)
@@ -196,7 +206,7 @@ The configuration for our ingeniously named panel, "panel".  Invoke it with =pol
 
   [bar/panel]
   width = 100%
-  height = 25
+  height = 60
   offset-x = 0
   offset-y = 0
   fixed-center = true
@@ -217,10 +227,10 @@ The configuration for our ingeniously named panel, "panel".  Invoke it with =pol
 
   module-margin = 1
 
-  font-0 = "Fira Sans:size=13;2"
-  font-1 = "Font Awesome:size=13;2"
-  font-2 = "Material Icons:size=20;5"
-  font-3 = "Fira Mono:size=13;-3"
+  font-0 = "Fira Sans:size=20;2"
+  font-1 = "Font Awesome:size=20;2"
+  font-2 = "Material Icons:size=27;5"
+  font-3 = "Fira Mono:size=20;-3"
 
   modules-left = exwm-workspace
   modules-right = cpu temperature battery date
@@ -273,16 +283,18 @@ The configuration for our ingeniously named panel, "panel".  Invoke it with =pol
 
   [module/battery]
   type = internal/battery
-  battery = BAT0
+  battery = BAT1
   adapter = ADP1
   full-at = 98
-  time-format = %-l:%M
+  ; time-format = %-l:%M
 
-  label-charging = %percentage%% / %time%
+  ; label-charging = %percentage%% / %time%
+  label-charging = %percentage%%
   format-charging = <animation-charging> <label-charging>
   format-charging-underline = ${colors.underline-1}
 
-  label-discharging = %percentage%% / %time%
+  ; label-discharging = %percentage%% / %time%
+  label-charging = %percentage%%
   format-discharging = <ramp-capacity> <label-discharging>
   format-discharging-underline = ${self.format-charging-underline}
 

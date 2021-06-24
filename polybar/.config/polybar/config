@@ -20,7 +20,7 @@ underline-1 = #d3869b
 
 [bar/panel]
 width = 100%
-height = 25
+height = 60
 offset-x = 0
 offset-y = 0
 fixed-center = true
@@ -41,10 +41,10 @@ padding-right = 1
 
 module-margin = 1
 
-font-0 = "Fira Sans:size=13;2"
-font-1 = "Font Awesome:size=13;2"
-font-2 = "Material Icons:size=20;5"
-font-3 = "Fira Mono:size=13;-3"
+font-0 = "Fira Sans:size=20;2"
+font-1 = "Font Awesome:size=20;2"
+font-2 = "Material Icons:size=27;5"
+font-3 = "Fira Mono:size=20;-3"
 
 modules-left = exwm-workspace
 modules-right = cpu temperature battery date
@@ -97,16 +97,18 @@ label = %date% %time%
 
 [module/battery]
 type = internal/battery
-battery = BAT0
+battery = BAT1
 adapter = ADP1
 full-at = 98
-time-format = %-l:%M
+; time-format = %-l:%M
 
-label-charging = %percentage%% / %time%
+; label-charging = %percentage%% / %time%
+label-charging = %percentage%%
 format-charging = <animation-charging> <label-charging>
 format-charging-underline = ${colors.underline-1}
 
-label-discharging = %percentage%% / %time%
+; label-discharging = %percentage%% / %time%
+label-charging = %percentage%%
 format-discharging = <ramp-capacity> <label-discharging>
 format-discharging-underline = ${self.format-charging-underline}
 

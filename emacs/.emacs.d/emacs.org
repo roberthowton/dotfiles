@@ -84,15 +84,15 @@ This file generates [[file:init.el][init.el]] which can be loaded by Emacs at st
 
 #+begin_src emacs-lisp
 
-(use-package auto-package-update
-  :custom
-  (auto-package-update-interval 7)
-  (auto-package-update-prompt-before update t)
-  (auto-package-update-hide-results t)
-  :config
-  (auto-package-update-maybe)
-  (auto-package-update-at-time "09:00")
-)
+  (use-package auto-package-update
+    :custom
+    (auto-package-update-interval 7)
+    (auto-package-update-prompt-before update t)
+    (auto-package-update-hide-results t)
+    :config
+    (auto-package-update-maybe)
+    (auto-package-update-at-time "09:00")
+    )
 
 #+end_src
 
@@ -165,13 +165,13 @@ This file generates [[file:init.el][init.el]] which can be loaded by Emacs at st
 
 #+begin_src emacs-lisp
 
-(use-package doom-modeline
-:ensure t
-:init (doom-modeline-mode 1)
-;; :custom ((doom-modeline-height 25))
-:config
-(setq doom-modeline-icon t)
-)
+  (use-package doom-modeline
+    :ensure t
+    :init (doom-modeline-mode 1)
+    ;; :custom ((doom-modeline-height 25))
+    :config
+    (setq doom-modeline-icon t)
+    )
 
 #+end_src
 
@@ -201,22 +201,22 @@ To consolidate information about active and available minor-modes.
 
 #+begin_src emacs-lisp
 
-(use-package all-the-icons
-  :if (display-graphic-p)
-  :commands all-the-icons-install-fonts
-  :init
-  (unless (find-font (font-spec :name "all-the-icons"))
-  (all-the-icons-install-fonts t)))
+  (use-package all-the-icons
+    :if (display-graphic-p)
+    :commands all-the-icons-install-fonts
+    :init
+    (unless (find-font (font-spec :name "all-the-icons"))
+      (all-the-icons-install-fonts t)))
 
-(use-package all-the-icons-dired
-  :if (display-graphic-p)
-  :hook (dired-mode . all-the-icons-dired-mode))
+  (use-package all-the-icons-dired
+    :if (display-graphic-p)
+    :hook (dired-mode . all-the-icons-dired-mode))
 
-(use-package all-the-icons-ivy
-  :init (add-hook 'after-init-hook 'all-the-icons-ivy-setup)
-  ;; :custom
-  ;; (all-the-icons-ivy-file-commands '(counsel-find-file counsel-file-jump counsel-recentf counsel-projectile-find-file counsel-projectile-find-dir))
-)
+  (use-package all-the-icons-ivy
+    :init (add-hook 'after-init-hook 'all-the-icons-ivy-setup)
+    ;; :custom
+    ;; (all-the-icons-ivy-file-commands '(counsel-find-file counsel-file-jump counsel-recentf counsel-projectile-find-file counsel-projectile-find-dir))
+    )
 
 #+end_src
 
@@ -433,29 +433,30 @@ https://github.com/Wilfred/helpful
 
 #+begin_src emacs-lisp
 
-  (use-package company
-    :diminish company-mode
-    :defer nil
-    :bind (:map company-active-map
-     ("RET" . company-complete-selection))
-    :config
-    (add-hook 'after-init-hook 'global-company-mode)
-    (add-hook 'exwm-init-hook 'global-company-mode)
-    :custom
-    (company-minimum-prefix-length 1)
-    (company-idle-delay 0.0))
+    (use-package company
+      :diminish company-mode
+      :defer nil
+      :bind (:map company-active-map
+       ("RET" . company-complete-selection))
+      :config
+      (add-hook 'after-init-hook 'global-company-mode)
+      (add-hook 'exwm-init-hook 'global-company-mode)
+      :custom
+      (company-minimum-prefix-length 1)
+      (company-idle-delay 0.0))
 
-  (use-package company-box
-    :hook (company-mode . company-box-mode))
+    (use-package company-box
+      :hook (company-mode . company-box-mode))
 
-  (defun text-mode-hook-setup ()
-    ;;make `company-backends` local
-    (make-local-variable 'company-backends)
-    ;;add `company-ispell` to `company-backends`
-    (add-to-list 'company-backends 'company-ispell)
-    (setq ispell-dictionary "english"))
+  (with-eval-after-load 'company
+    (defun text-mode-hook-setup ()
+      ;;make `company-backends` local
+      (make-local-variable 'company-backends)
+      ;;add `company-ispell` to `company-backends`
+      (add-to-list 'company-backends 'company-ispell)
+      (setq ispell-dictionary "english"))
 
-  (add-hook 'text-mode-hook 'text-mode-hook-setup)
+    (add-hook 'text-mode-hook 'text-mode-hook-setup))
 
 #+end_src
 
@@ -803,6 +804,7 @@ https://github.com/emacs-dashboard/emacs-dashboard
           (global-page-break-lines-mode))
 
         (use-package dashboard
+          :defer t
           :init
           (dashboard-setup-startup-hook)
           (dashboard-insert-startupify-lists)
@@ -1016,20 +1018,23 @@ Sets the background of HTML color strings in buffers to be the color mentioned.
 
 #+begin_src emacs-lisp
 
-  (use-package js2-mode
-  :mode "\\.js\\'"
-  :config)
+    ;; (use-package js2-mode
+    ;; :mode "\\.js\\'"
+    ;; :config)
 
-  (use-package js2-refactor
-  :hook (js2-mode . js2-refactor))
+    ;; (use-package js2-refactor
+    ;; :hook (js2-mode . js2-refactor))
 
-  (use-package xref-js2)
+    ;; (use-package xref-js2)
 
-  (use-package ac-js2
-  :defer t
-  :hook (js2-mode . ac-js2)
-  :config
-  (add-to-list 'company-backends 'ac-js2-company))
+    ;; (use-package ac-js2
+    ;; :defer t
+    ;; :hook (js2-mode . ac-js2)
+    ;; :config
+    ;; ;; (add-to-list 'company-backends 'ac-js2-company)
+    ;; )
+
+  (use-package indium)
 
 #+end_src
 
@@ -2016,10 +2021,18 @@ Requires pandoc.
 
 #+end_src
 
-** Org-Publish
+** Org-Appear
 
 #+begin_src emacs-lisp
 
+  (use-package org-appear
+    :hook (org-mode . org-appear-mode))
+
+#+end_src
+
+** Org-Publish
+
+#+begin_src emacs-lisp
 
   (defun rfh/org-beamer-publish-to-pdf (plist filename pub-dir)
     (org-beamer-publish-to-pdf plist filename (file-name-directory buffer-file-name)))
@@ -2371,6 +2384,11 @@ Automatically tangle =emacs.org= on save.
 
 #+begin_src emacs-lisp
 
-;; (load-file "~/.emacs.d/desktop.el")
+  ;; (load-file "~/.emacs.d/desktop.el")
+
+
+  ;; (require 'exwm)
+  ;; (require 'exwm-config)
+  ;; (exwm-config-default)
 
 #+end_src

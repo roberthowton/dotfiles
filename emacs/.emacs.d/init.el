@@ -31,7 +31,7 @@
   :config
   (auto-package-update-maybe)
   (auto-package-update-at-time "09:00")
-)
+  )
 
 (scroll-bar-mode -1)            ; disable visible scrollbar
 (tool-bar-mode -1)              ; disable the toolbar
@@ -75,12 +75,12 @@
 :hook (prog-mode . rainbow-delimiters-mode))
 
 (use-package doom-modeline
-:ensure t
-:init (doom-modeline-mode 1)
-;; :custom ((doom-modeline-height 25))
-:config
-(setq doom-modeline-icon t)
-)
+  :ensure t
+  :init (doom-modeline-mode 1)
+  ;; :custom ((doom-modeline-height 25))
+  :config
+  (setq doom-modeline-icon t)
+  )
 
 (use-package minions
   :config (minions-mode 1))
@@ -95,7 +95,7 @@
   :commands all-the-icons-install-fonts
   :init
   (unless (find-font (font-spec :name "all-the-icons"))
-  (all-the-icons-install-fonts t)))
+    (all-the-icons-install-fonts t)))
 
 (use-package all-the-icons-dired
   :if (display-graphic-p)
@@ -105,7 +105,7 @@
   :init (add-hook 'after-init-hook 'all-the-icons-ivy-setup)
   ;; :custom
   ;; (all-the-icons-ivy-file-commands '(counsel-find-file counsel-file-jump counsel-recentf counsel-projectile-find-file counsel-projectile-find-dir))
-)
+  )
 
 (use-package paren
   :config
@@ -249,28 +249,29 @@
 (use-package wgrep)
 
 (use-package company
-  :diminish company-mode
-  :defer nil
-  :bind (:map company-active-map
-   ("RET" . company-complete-selection))
-  :config
-  (add-hook 'after-init-hook 'global-company-mode)
-  (add-hook 'exwm-init-hook 'global-company-mode)
-  :custom
-  (company-minimum-prefix-length 1)
-  (company-idle-delay 0.0))
+    :diminish company-mode
+    :defer nil
+    :bind (:map company-active-map
+     ("RET" . company-complete-selection))
+    :config
+    (add-hook 'after-init-hook 'global-company-mode)
+    (add-hook 'exwm-init-hook 'global-company-mode)
+    :custom
+    (company-minimum-prefix-length 1)
+    (company-idle-delay 0.0))
 
-(use-package company-box
-  :hook (company-mode . company-box-mode))
+  (use-package company-box
+    :hook (company-mode . company-box-mode))
 
-(defun text-mode-hook-setup ()
-  ;;make `company-backends` local
-  (make-local-variable 'company-backends)
-  ;;add `company-ispell` to `company-backends`
-  (add-to-list 'company-backends 'company-ispell)
-  (setq ispell-dictionary "english"))
+(with-eval-after-load 'company
+  (defun text-mode-hook-setup ()
+    ;;make `company-backends` local
+    (make-local-variable 'company-backends)
+    ;;add `company-ispell` to `company-backends`
+    (add-to-list 'company-backends 'company-ispell)
+    (setq ispell-dictionary "english"))
 
-(add-hook 'text-mode-hook 'text-mode-hook-setup)
+  (add-hook 'text-mode-hook 'text-mode-hook-setup))
 
 (use-package marginalia
   :config
@@ -485,6 +486,7 @@ _SPC_ cancel	_o_nly this   	    _d_elete
         (global-page-break-lines-mode))
 
       (use-package dashboard
+        :defer t
         :init
         (dashboard-setup-startup-hook)
         (dashboard-insert-startupify-lists)
@@ -606,20 +608,23 @@ _SPC_ cancel	_o_nly this   	    _d_elete
   :keymaps '(visual)
   "er" '(eval-region :which-key "eval region"))
 
-(use-package js2-mode
-:mode "\\.js\\'"
-:config)
+;; (use-package js2-mode
+  ;; :mode "\\.js\\'"
+  ;; :config)
 
-(use-package js2-refactor
-:hook (js2-mode . js2-refactor))
+  ;; (use-package js2-refactor
+  ;; :hook (js2-mode . js2-refactor))
 
-(use-package xref-js2)
+  ;; (use-package xref-js2)
 
-(use-package ac-js2
-:defer t
-:hook (js2-mode . ac-js2)
-:config
-(add-to-list 'company-backends 'ac-js2-company))
+  ;; (use-package ac-js2
+  ;; :defer t
+  ;; :hook (js2-mode . ac-js2)
+  ;; :config
+  ;; ;; (add-to-list 'company-backends 'ac-js2-company)
+  ;; )
+
+(use-package indium)
 
 (use-package markdown-mode
   :mode "\\.md\\'"
@@ -1281,6 +1286,9 @@ roberthowton.com
 (use-package ox-pandoc
   :after ox)
 
+(use-package org-appear
+  :hook (org-mode . org-appear-mode))
+
 (defun rfh/org-beamer-publish-to-pdf (plist filename pub-dir)
   (org-beamer-publish-to-pdf plist filename (file-name-directory buffer-file-name)))
 
@@ -1512,3 +1520,22 @@ roberthowton.com
 )
 
 ;; (load-file "~/.emacs.d/desktop.el")
+
+
+;; (require 'exwm)
+;; (require 'exwm-config)
+;; (exwm-config-default)
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(battery-upower-device "battery_BAT2")
+ '(package-selected-packages
+   '(indium org-appear yaml-mode ws-butler winum which-key wgrep web-mode visual-fill-column use-package super-save smex smartparens rainbow-mode rainbow-delimiters pdf-tools pandoc-mode ox-pandoc ox-hugo ox-gemini org-tree-slide org-roam org-rich-yank org-re-reveal org-noter org-msg org-bullets olivetti ob-mermaid no-littering minions marginalia magit lsp-ui lsp-ivy ivy-hydra ivy-bibtex impatient-mode hide-mode-line helpful guix general gemini-mode flycheck flx fish-completion exwm expand-region evil-nerd-commenter evil-collection eterm-256color eshell-toggle eshell-syntax-highlighting eshell-git-prompt esh-autosuggest emojify embark elpher doom-themes doom-modeline diredfl dired-single dired-open dired-hide-dotfiles desktop-environment deft default-text-scale dashboard dap-mode counsel-projectile company-box auto-package-update all-the-icons-ivy-rich all-the-icons-ivy all-the-icons-dired alert)))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
