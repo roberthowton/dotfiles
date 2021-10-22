@@ -96,6 +96,24 @@ This file generates [[file:init.el][init.el]] which can be loaded by Emacs at st
 
 #+end_src
 
+** Bootstrap =quelpa=
+
+#+begin_src emacs-lisp
+
+  (unless (package-installed-p 'quelpa)
+    (with-temp-buffer
+      (url-insert-file-contents "https://raw.githubusercontent.com/quelpa/quelpa/master/quelpa.el")
+      (eval-buffer)
+      (quelpa-self-upgrade)))
+
+  (quelpa
+   '(quelpa-use-package
+     :fetcher git
+     :url "https://github.com/quelpa/quelpa-use-package.git"))
+  (require 'quelpa-use-package)
+
+#+end_src
+
 * UI Configuration
 ** Basic UI Configuration
 
@@ -170,8 +188,7 @@ This file generates [[file:init.el][init.el]] which can be loaded by Emacs at st
     :init (doom-modeline-mode 1)
     ;; :custom ((doom-modeline-height 25))
     :config
-    (setq doom-modeline-icon t)
-    )
+    (setq doom-modeline-icon t))
 
 #+end_src
 
@@ -282,7 +299,7 @@ https://github.com/Wilfred/helpful
 #+end_src
 
 ** Completion Frameworks
-
+=
 *** Ivy
 
 #+begin_src emacs-lisp
@@ -493,27 +510,33 @@ https://github.com/Wilfred/helpful
 
 #+begin_src emacs-lisp
 
-(use-package evil
-  :init
-  (setq evil-want-integration t)
-  (setq evil-want-keybinding nil)
-  (setq evil-want-C-u-scroll nil)
-  (setq evil-want-C-i-jump nil)
-  :config
-  (evil-mode 1)
-  (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
-  (define-key evil-insert-state-map (kbd "C-h") 'evil-delete-backward-char-and-join)
+  (use-package undo-tree
+    :config
+    (global-undo-tree-mode))
 
-  ;; Use visual line motions even outside of visual-line-mode buffers
-  (evil-global-set-key 'motion "j" 'evil-next-visual-line)
-  (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
+  (use-package evil
+    :init
+    (setq evil-want-integration t)
+    (setq evil-want-keybinding nil)
+    (setq evil-want-C-u-scroll nil)
+    (setq evil-want-C-i-jump nil)
+    :config
+    (evil-mode 1)
+    (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
+    (define-key evil-insert-state-map (kbd "C-h") 'evil-delete-backward-char-and-join)
 
-  (evil-set-initial-state 'messages-buffer-mode 'normal))
+    ;; Use visual line motions even outside of visual-line-mode buffers
+    (evil-global-set-key 'motion "j" 'evil-next-visual-line)
+    (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
 
-(use-package evil-collection
-  :after evil
-  :config
-  (evil-collection-init))
+    (evil-set-initial-state 'messages-buffer-mode 'normal)
+    (evil-set-undo-system 'undo-tree)
+    )
+
+  (use-package evil-collection
+    :after evil
+    :config
+    (evil-collection-init))
 
 #+end_src
 
@@ -848,10 +871,22 @@ https://github.com/emacs-dashboard/emacs-dashboard
 
 #+begin_src emacs-lisp
 
-(setq-default tab-width 2)
-(setq-default evil-shift-width tab-width)
+  (setq-default tab-width 2)
+  (setq-default evil-shift-width tab-width)
 
 #+end_src
+
+** Prog Mode Line Numbers
+
+#+begin_src emacs-lisp
+
+  (defun rfh/display-line-numbers-hook ()
+    (display-line-numbers-mode t)
+    )
+  (add-hook 'prog-mode-hook 'rfh/display-line-numbers-hook)
+
+#+end_src
+
 ** Yank Ring
 
 #+begin_src emacs-lisp
@@ -871,7 +906,7 @@ https://github.com/emacs-dashboard/emacs-dashboard
 
 #+begin_src emacs-lisp
 
-(setq-default indent-tabs-mode nil)
+  (setq-default indent-tabs-mode nil)
 
 #+end_src
 
@@ -918,7 +953,9 @@ tweaking Org agenda views much less annoying.
 
   (use-package flycheck
     :defer t
-    :hook (lsp-mode . flycheck-mode))
+    :hook
+    (lsp-mode . flycheck-mode)
+    (prog-mode . flycheck-mode))
 
 #+end_src
 
@@ -926,10 +963,10 @@ tweaking Org agenda views much less annoying.
 
 #+begin_src emacs-lisp
 
-  (use-package yasnippet
-    :hook (prog-mode . yas-minor-mode)
-    :config
-    (yas-reload-all))
+	(use-package yasnippet
+		:hook (prog-mode . yas-minor-mode)
+		:config
+		(yas-reload-all))
 
 #+end_src
 
@@ -937,8 +974,8 @@ tweaking Org agenda views much less annoying.
 
 #+begin_src emacs-lisp
 
-  (use-package smartparens
-    :hook (prog-mode . smartparens-mode))
+	(use-package smartparens
+		:hook (prog-mode . smartparens-mode))
 
 #+end_src
 
@@ -946,8 +983,8 @@ tweaking Org agenda views much less annoying.
 
 #+begin_src emacs-lisp
 
-  (use-package rainbow-delimiters
-    :hook (prog-mode . rainbow-delimiters-mode))
+	(use-package rainbow-delimiters
+		:hook (prog-mode . rainbow-delimiters-mode))
 
 #+end_src
 
@@ -958,12 +995,12 @@ Sets the background of HTML color strings in buffers to be the color mentioned.
 #+begin_src emacs-lisp
 
 (use-package rainbow-mode
-  :defer t
-  :hook (org-mode
-         emacs-lisp-mode
-         web-mode
-         typescript-mode
-         js2-mode))
+	:defer t
+	:hook (org-mode
+				 emacs-lisp-mode
+				 web-mode
+				 typescript-mode
+				 js2-mode))
 
 #+end_src
 
@@ -973,29 +1010,29 @@ Sets the background of HTML color strings in buffers to be the color mentioned.
 
 #+begin_src emacs-lisp
 
-  (use-package lsp-mode
-    :init
-    ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
-    ;; (setq lsp-keymap-prefix "C-c l")
-    :hook (;; replace XXX-mode with concrete major-mode(e. g. python-mode)
-           (js2-mode . lsp)
-           ;; if you want which-key integration
-           (lsp-mode . lsp-enable-which-key-integration))
-    :commands lsp)
+	(use-package lsp-mode
+		:init
+		;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
+		;; (setq lsp-keymap-prefix "C-c l")
+		:hook (;; replace XXX-mode with concrete major-mode(e. g. python-mode)
+					 (js2-mode . lsp)
+					 ;; if you want which-key integration
+					 (lsp-mode . lsp-enable-which-key-integration))
+		:commands lsp)
 
-  ;; optionally
-  (use-package lsp-ui :commands lsp-ui-mode)
+	;; optionally
+	(use-package lsp-ui :commands lsp-ui-mode)
 
-  ;; if you are ivy user
-  (use-package lsp-ivy :commands lsp-ivy-workspace-symbol)
-  (use-package lsp-treemacs :commands lsp-treemacs-errors-list)
+	;; if you are ivy user
+	(use-package lsp-ivy :commands lsp-ivy-workspace-symbol)
+	(use-package lsp-treemacs :commands lsp-treemacs-errors-list)
 
-  ;; optionally if you want to use debugger
-  (use-package dap-mode)
-  ;; (use-package dap-LANGUAGE) to load the dap adapter for your language
+	;; optionally if you want to use debugger
+	(use-package dap-mode)
+	;; (use-package dap-LANGUAGE) to load the dap adapter for your language
 
-  (add-hook 'dap-stopped-hook
-            (lambda (arg) (call-interactively #'dap-hydra)))
+	(add-hook 'dap-stopped-hook
+						(lambda (arg) (call-interactively #'dap-hydra)))
 
 #+end_src
 
@@ -1003,29 +1040,30 @@ Sets the background of HTML color strings in buffers to be the color mentioned.
 
 #+begin_src emacs-lisp
 
-  (add-hook 'emacs-lisp-mode-hook #'flycheck-mode)
+	(add-hook 'emacs-lisp-mode-hook #'flycheck-mode)
 
-  (rfh/leader-keys
-    "e"   '(:ignore t :which-key "eval")
-    "eb"  '(eval-buffer :which-key "eval buffer")
-    "eI"  '((lambda () (interactive) (load-file (expand-file-name "~/dotfiles/emacs/.emacs.d/init.el"))) :which-key "eval init.el"))
-  (rfh/leader-keys
-    :keymaps '(visual)
-    "er" '(eval-region :which-key "eval region"))
+	(rfh/leader-keys
+		"e"		'(:ignore t :which-key "eval")
+		"eb"	'(eval-buffer :which-key "eval buffer")
+		"eI"	'((lambda () (interactive) (load-file (expand-file-name "~/dotfiles/emacs/.emacs.d/init.el"))) :which-key "eval init.el"))
+	(rfh/leader-keys
+		:keymaps '(visual)
+		"er" '(eval-region :which-key "eval region"))
 
 #+end_src
 *** JavaScript
 
 #+begin_src emacs-lisp
 
-    ;; (use-package js2-mode
-    ;; :mode "\\.js\\'"
-    ;; :config)
+  (use-package js2-mode
+    :mode "\\.js\\'"
+    :config
+    (setq js2-basic-offset '2))
 
     ;; (use-package js2-refactor
     ;; :hook (js2-mode . js2-refactor))
 
-    ;; (use-package xref-js2)
+    ;; (se-package xref-js2)
 
     ;; (use-package ac-js2
     ;; :defer t
@@ -1035,6 +1073,10 @@ Sets the background of HTML color strings in buffers to be the color mentioned.
     ;; )
 
   (use-package indium)
+
+  (setq lsp-eslint-enable t)
+  (setq lsp-eslint-auto-fix-on-save t)
+
 
 #+end_src
 
@@ -1066,20 +1108,19 @@ Sets the background of HTML color strings in buffers to be the color mentioned.
 
 #+begin_src emacs-lisp
 
-(use-package web-mode
-  :mode "(\\.\\(html?\\|ejs\\|tsx\\|jsx\\)\\'"
-  :config
-  (setq-default web-mode-code-indent-offset 2)
-  (setq-default web-mode-markup-indent-offset 2)
-  (setq-default web-mode-attribute-indent-offset 2))
+  (use-package web-mode
+    :config
+    (setq-default web-mode-code-indent-offset 2)
+    (setq-default web-mode-markup-indent-offset 2)
+    (setq-default web-mode-attribute-indent-offset 2))
 
-;; 1. Start the server with `httpd-start'
-;; 2. Use `impatient-mode' on any buffer
-(use-package impatient-mode
-  :ensure t)
+  ;; 1. Start the server with `httpd-start'
+  ;; 2. Use `impatient-mode' on any buffer
+  (use-package impatient-mode
+    :ensure t)
 
-(use-package skewer-mode
-  :ensure t)
+  (use-package skewer-mode
+    :ensure t)
 
 #+end_src
 
@@ -1148,32 +1189,57 @@ Sets the background of HTML color strings in buffers to be the color mentioned.
 
 #+end_src
 
+** git-blamer
+
+#+begin_src emacs-lisp
+
+  (use-package blamer
+    :quelpa (blamer :fetcher github :repo "artawower/blamer.el")
+    (blamer-idle-time 0.3)
+    (blamer-min-offset 70)
+    :custom-face
+    (blamer-face ((t :foreground "#7a88cf"
+                     :background nil
+                     :height 140
+                     :italic t)))
+    :config
+    (global-blamer-mode 1))
+
+
+#+end_src
+
 * Terminals
 
 ** Term-Mode
 
 #+begin_src emacs-lisp
 
-(use-package term
-  :config
-  (setq explicit-shell-file-name "bash") ;; Change this to zsh, etc
-  ;;(setq explicit-zsh-args '())         ;; Use 'explicit-<shell>-args for shell-specific args
+  (use-package term
+    :config
+    (setq explicit-shell-file-name "zsh") ;; Change this to zsh, etc
+    ;;(setq explicit-zsh-args '())         ;; Use 'explicit-<shell>-args for shell-specific args
 
-  ;; Match the default Bash shell prompt.  Update this if you have a custom prompt
-  (setq term-prompt-regexp "^[^#$%>\n]*[#$%>] *"))
+    ;; Match the default Bash shell prompt.  Update this if you have a custom prompt
+    (setq term-prompt-regexp "^[^#$%>\n]*[#$%>] *"))
 
- ;; better `term-mode' colors
+   ;; better `term-mode' colors
 
- (use-package eterm-256color
-   :hook (term-mode . eterm-256color-mode))
+   (use-package eterm-256color
+     :hook (term-mode . eterm-256color-mode))
 
-(rfh/leader-keys
-  "s"  '(:ignore t :which-key "shells")
-  "st" '(eshell :which-key "term"))
+  (rfh/leader-keys
+    "s"  '(:ignore t :which-key "shells")
+    "st" '(eshell :which-key "term"))
 
 #+end_src
 
 ** TODO Vterm
+
+#+begin_src emacs-lisp
+
+(use-package vterm)
+
+#+end_src
 
 ** Eshell
 
@@ -1701,135 +1767,137 @@ Syntaxi highlighting and browser for gemini internet protocol
 
 #+begin_src emacs-lisp
 
-(use-package mu4e
-  :ensure nil
-  :defer 20
-  :load-path "/usr/share/emacs/site-lisp/"
-  :config
+  (use-package mu4e
+    :ensure nil
+    ;; :defer 20
+    :load-path "/usr/share/emacs/site-lisp/mu4e"
+    :config
+    (setq mu4e-mu-binary "/usr/bin/mu")
 
-  ;; Refresh mail using isync every 10 minutes
-  (setq mu4e-update-interval (* 10 60))
-  (setq mu4e-get-mail-command "offlineimap")
-  (setq mu4e-maildir "~/maildir")
+    ;; Refresh mail using isync every 10 minutes
+    (setq mu4e-update-interval (* 10 60))
+    (setq mu4e-get-mail-command "offlineimap")
+    (setq mu4e-maildir "~/maildir")
 
-  (setq mu4e-context-policy 'pick-first)
-  (setq mu4e-compose-format-flowed t)
-  (setq message-kill-buffer-on-exit t)
+    (setq mu4e-context-policy 'pick-first)
+    (setq mu4e-compose-format-flowed t)
+    (setq message-kill-buffer-on-exit t)
 
-  (setq mu4e-maildir-shortcuts t
-        mu4e-compose-dont-reply-to-self t
-        mu4e-change-filenames-when-moving t
-        mu4e-view-prefer-html t
-        mu4e-show-images t
-        mu4e-view-image-max-width 800
-        mu4e-enable-async-operations t
-        message-kill-buffer-on-exit t
-        mu4e-enable-mode-line t
-        mu4e-index-cleanup t
-        mu4e-index-lazy-check t
-        mu4e-use-fancy-chars t
-        mu4e-use-maildirs-extension t
-        mu4e-enable-notifications t
-        mu4e-view-show-addresses t
-        )
+    (setq mu4e-maildir-shortcuts t
+          mu4e-compose-dont-reply-to-self t
+          mu4e-change-filenames-when-moving t
+          mu4e-view-prefer-html t
+          mu4e-show-images t
+          mu4e-view-image-max-width 800
+          mu4e-enable-async-operations t
+          message-kill-buffer-on-exit t
+          mu4e-enable-mode-line t
+          mu4e-index-cleanup t
+          mu4e-index-lazy-check t
+          mu4e-use-fancy-chars t
+          mu4e-use-maildirs-extension t
+          mu4e-enable-notifications t
+          mu4e-view-show-addresses t
+          )
 
-  (setq mu4e-maildir-shortcuts
-      '( (:maildir "/ku/INBOX"                    :key ?i)
-         (:maildir "/ku/[Gmail].Sent Mail"        :key ?s)
-         (:maildir "/ku/[Gmail].Trash"            :key ?t)
-         (:maildir "/ku/[Gmail].All Mail"         :key ?a)
-         (:maildir "/personal/PrimaryInbox"       :key ?I)
-         (:maildir "/personal/[Gmail].Sent Mail"  :key ?S)
-         (:maildir "/personal/[Gmail].Trash"      :key ?T)
-         ))
+    (setq mu4e-maildir-shortcuts
+        '( (:maildir "/ku/INBOX"                    :key ?i)
+           (:maildir "/ku/[Gmail].Sent Mail"        :key ?s)
+           (:maildir "/ku/[Gmail].Trash"            :key ?t)
+           (:maildir "/ku/[Gmail].All Mail"         :key ?a)
+           (:maildir "/personal/PrimaryInbox"       :key ?I)
+           (:maildir "/personal/[Gmail].Sent Mail"  :key ?S)
+           (:maildir "/personal/[Gmail].Trash"      :key ?T)
+           ))
 
-  (setq mu4e-contexts
-    (list
-      ;; personal account
-      (make-mu4e-context
-          :name "Personal"
-          :enter-func (lambda () (mu4e-message "Switch to personal context"))
-          ;; leave-func not defined
-          :match-func (lambda (msg)
-		      (when msg
-			    (string= (mu4e-message-field msg :maildir) "/personal")))
-          :vars '(  ( user-mail-address      . "robert.f.howton@gmail.com"  )
-            ( user-full-name     . "Robert Howton" )
-            ;; ( mu4e-compose-signature .
-            ;; (concat
-            ;;   "Robert Howton\n"
-            ;;   "roberthowton.com\n"))
-              ;; (org-msg-signature "
+    (setq mu4e-contexts
+      (list
+        ;; personal account
+        (make-mu4e-context
+            :name "Personal"
+            :enter-func (lambda () (mu4e-message "Switch to personal context"))
+            ;; leave-func not defined
+            :match-func (lambda (msg)
+            (when msg
+            (string= (mu4e-message-field msg :maildir) "/personal")))
+            :vars '(  ( user-mail-address      . "robert.f.howton@gmail.com"  )
+              ( user-full-name     . "Robert Howton" )
+              ;; ( mu4e-compose-signature .
+              ;; (concat
+              ;;   "Robert Howton\n"
+              ;;   "roberthowton.com\n"))
+                ;; (org-msg-signature "
 
 
-              ;; #+begin_signature
-              ;; Robert Howton \\\\
-              ;; [[roberthowton.com]]
-              ;; #+end_signature")
-              (mu4e-drafts-folder . "/personal/[Gmail].Drafts")
-              (mu4e-sent-folder   . "/personal/[Gmail].Sent Mail")
-              (mu4e-trash-folder  . "/personal/[Gmail].Trash")
-              (smtpmail-starttls-credentials . '(("smtp.gmail.com" 587 nil nil)))
-              (smtpmail-smtp-user . "robert.f.howton@gmail.com")
-              (smtpmail-auth-credentials . '(("smtp.gmail.com" 587 "robert.f.howton@gmail.com" nil)))
-              (smtpmail-default-smtp-server . "smtp.gmail.com")
-              (smtpmail-smtp-server . "smtp.gmail.com")
-              (smtpmail-smtp-service . 587)
-              ))
-       ;; work account
-       (make-mu4e-context
-           :name "Work"
-           :enter-func (lambda () (mu4e-message "Switch to work context"))
-           ;; leave-fun not defined
-           :match-func (lambda (msg)
-			       (when msg
-			            (string= (mu4e-message-field msg :maildir) "/ku")))
-           :vars '(  ( user-mail-address      . "rhowton@ku.edu.tr" )
-             ( user-full-name     . "Robert Howton" )
-             ;; ( mu4e-compose-signature .
-             ;; (concat
-             ;;   "Robert Howton\n"
-             ;;   "Assistant Professor\n"
-             ;;   "Department of Philosophy\n"
-             ;;   "Koç University\n\n"
-             ;;   "roberthowton.com"))
-               (mu4e-drafts-folder . "/ku/[Gmail].Drafts")
-               (mu4e-sent-folder   . "/ku/[Gmail].Sent Mail")
-               (mu4e-trash-folder  . "/ku/[Gmail].Trash")
-               (smtpmail-starttls-credentials . '(("smtp.gmail.com" 587 nil nil)))
-               (smtpmail-smtp-user . "rhowton@ku.edu.tr")
-               (smtpmail-auth-credentials . '(("smtp.gmail.com" 587 "rhowton@ku.edu.tr" nil)))
-               (smtpmail-default-smtp-server . "smtp.gmail.com")
-               (smtpmail-smtp-server . "smtp.gmail.com")
-               (smtpmail-smtp-service . 587)
-               )
-               ))))
+                ;; #+begin_signature
+                ;; Robert Howton \\\\
+                ;; [[roberthowton.com]]
+                ;; #+end_signature")
+                (mu4e-drafts-folder . "/personal/[Gmail].Drafts")
+                (mu4e-sent-folder   . "/personal/[Gmail].Sent Mail")
+                (mu4e-trash-folder  . "/personal/[Gmail].Trash")
+                (smtpmail-starttls-credentials . '(("smtp.gmail.com" 587 nil nil)))
+                (smtpmail-smtp-user . "robert.f.howton@gmail.com")
+                (smtpmail-auth-credentials . '(("smtp.gmail.com" 587 "robert.f.howton@gmail.com" nil)))
+                (smtpmail-default-smtp-server . "smtp.gmail.com")
+                (smtpmail-smtp-server . "smtp.gmail.com")
+                (smtpmail-smtp-service . 587)
+                ))
+         ;; work account
+         ;; (make-mu4e-context
+         ;;     :name "Work"
+         ;;     :enter-func (lambda () (mu4e-message "Switch to work context"))
+         ;;     ;; leave-fun not defined
+         ;;     :match-func (lambda (msg)
+         ;;       (when msg
+         ;;            (string= (mu4e-message-field msg :maildir) "/ku")))
+         ;;     :vars '(  ( user-mail-address      . "rhowton@ku.edu.tr" )
+         ;;       ( user-full-name     . "Robert Howton" )
+         ;;       ;; ( mu4e-compose-signature .
+         ;;       ;; (concat
+         ;;       ;;   "Robert Howton\n"
+         ;;       ;;   "Assistant Professor\n"
+         ;;       ;;   "Department of Philosophy\n"
+         ;;       ;;   "Koç University\n\n"
+         ;;       ;;   "roberthowton.com"))
+         ;;         (mu4e-drafts-folder . "/ku/[Gmail].Drafts")
+         ;;         (mu4e-sent-folder   . "/ku/[Gmail].Sent Mail")
+         ;;         (mu4e-trash-folder  . "/ku/[Gmail].Trash")
+         ;;         (smtpmail-starttls-credentials . '(("smtp.gmail.com" 587 nil nil)))
+         ;;         (smtpmail-smtp-user . "rhowton@ku.edu.tr")
+         ;;         (smtpmail-auth-credentials . '(("smtp.gmail.com" 587 "rhowton@ku.edu.tr" nil)))
+         ;;         (smtpmail-default-smtp-server . "smtp.gmail.com")
+         ;;         (smtpmail-smtp-server . "smtp.gmail.com")
+         ;;         (smtpmail-smtp-service . 587)
+         ;;         )
+         ;;         )
+         )))
 
-;; configure mail send function
-(setq message-send-mail-function 'smtpmail-send-it)
+  ;; configure mail send function
+  (setq message-send-mail-function 'smtpmail-send-it)
 
-;; use mu4e for e-mail in emacs
-(setq mail-user-agent 'mu4e-user-agent)
+  ;; use mu4e for e-mail in emacs
+  (setq mail-user-agent 'mu4e-user-agent)
 
-(add-hook 'mu4e-view-mode-hook #'visual-line-mode)
+  (add-hook 'mu4e-view-mode-hook #'visual-line-mode)
 
-(add-hook 'mu4e-compose-mode-hook 'flyspell-mode)
-(add-hook 'mu4e-compose-mode-hook 'visual-line-mode)
+  (add-hook 'mu4e-compose-mode-hook 'flyspell-mode)
+  (add-hook 'mu4e-compose-mode-hook 'visual-line-mode)
 
-(setq mu4e-completing-read-function 'ivy-completing-read)
+  (setq mu4e-completing-read-function 'ivy-completing-read)
 
-;; enable org-mode links
-(use-package mu4e-org
-  :after (org mu4e)
-  :ensure nil
-  :config
-  (setq mu4e-org-link-query-in-headers-mode nil))
+  ;; enable org-mode links
+  (use-package mu4e-org
+    :after (org mu4e)
+    :ensure nil
+    :config
+    (setq mu4e-org-link-query-in-headers-mode nil))
 
-(rfh/leader-keys
-  "M"     '(mu4e :which-key "mail dashboard")
-  "m"     '(:ignore t :which-key "mail commands")
-  "mc"    '(mu4e-compose-new :which-key "compose new message")
-)
+  (rfh/leader-keys
+    "M"     '(mu4e :which-key "mail dashboard")
+    "m"     '(:ignore t :which-key "mail commands")
+    "mc"    '(mu4e-compose-new :which-key "compose new message")
+  )
 
 #+end_src
 
@@ -1837,27 +1905,25 @@ Syntaxi highlighting and browser for gemini internet protocol
 
 #+begin_src emacs-lisp
 
-(use-package org-msg
-  :config
-  (setq org-msg-options "html-postamble:nil H:5 num:nil ^:{} toc:nil author:nil email:nil \\n:t"
-        org-msg-startup "hidestars indent inlineimages"
-        org-msg-greeting-fmt "\nHi %s,\n\n"
-        org-msg-recipient-names '(("robert.f.howton@gmail.com" . "Robbie") ("rhowton@ku.edu.tr" . "Robert"))
-        org-msg-greeting-name-limit 3
-        org-msg-default-alternatives '(text html)
-        org-msg-convert-citation t
-        org-msg-signature "
+  (use-package org-msg
+    :config
+    (setq org-msg-options "html-postamble:nil H:5 num:nil ^:{} toc:nil author:nil email:nil \\n:t"
+          org-msg-startup "hidestars indent inlineimages"
+          org-msg-greeting-fmt "\nHi %s,\n\n"
+          org-msg-recipient-names '(("robert.f.howton@gmail.com" . "Robbie") ("rhowton@ku.edu.tr" . "Robert"))
+          org-msg-greeting-name-limit 3
+          org-msg-default-alternatives '(text html)
+          org-msg-convert-citation t
+          org-msg-signature "
 
-#+begin_signature
-Robert Howton
-Assistant Professor
-Department of Philosophy
-Koç University
+  ,#+begin_signature
+  Best,
 
-roberthowton.com
-#+end_signature")
-(org-msg-mode)
-  )
+  Robert Howton
+  roberthowton.com
+  ,#+end_signature")
+  (org-msg-mode)
+    )
 
 #+end_src
 
@@ -1926,7 +1992,7 @@ Workaround for inaccessible pinentry dialogue in exwm. (Make sure you have =pine
                   (org-level-6 . 1.1)
                   (org-level-7 . 1.1)
                   (org-level-8 . 1.1)))
-    (set-face-attribute (car face) nil :font "Cantarell" :weight 'regular :height (cdr face)))
+    (set-face-attribute (car face) nil :font "Iosevka Aile" :weight 'light :height (cdr face)))
 
   ;; Ensure that anything that should be fixed-pitch in Org files appears that way
   (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
@@ -2217,24 +2283,29 @@ Check these lines for `org-agenda' config ideas: https://github.com/daviwil/emac
 #+begin_src emacs-lisp
 
   (use-package org-roam
-       :hook
-       (after-init . org-roam-mode)
-       :custom
-       (org-roam-directory "~/projects/org/"))
+    :init
+    (setq org-roam-v2-ack t)
+    :custom
+    (org-roam-directory "~/projects/org/")
+    (org-roam-completion-everywhere t)
+    :bind (:map org-mode-map
+          ("C-M-i" . completion-at-point))
+    :config
+    (org-roam-setup))
 
   (rfh/leader-keys
     "r"  '(:ignore t :which-key "org-roam")
-    "ri" '(org-roam-insert-immediate :which-key "insert immediate link")
-    "rI" '(org-roam-insert :which-key "insert link")
-    "rf" '(org-roam-find-file :which-key "find/create file")
-    "rr" '(org-roam-buffer-toggle-display :which-key "toggle org-roam buffer")
+    ;; "ri" '(org-roam-insert-immediate :which-key "insert immediate link")
+    "ri" '(org-roam-node-insert :which-key "insert node")
+    "rf" '(org-roam-node-find :which-key "find/create node")
+    "rr" '(org-roam-buffer-toggle :which-key "toggle org-roam buffer")
     "r+" '(org-roam-tag-add :which-key "add org-roam tag")
-    "r-" '(org-roam-tag-delete :which-key "remove org-roam tag")
+    "r-" '(org-roam-tag-remove :which-key "remove org-roam tag")
     )
 
 #+end_src
 
-** Org-Noter
+** org-noter
 
 #+begin_src emacs-lisp
 
@@ -2242,13 +2313,13 @@ Check these lines for `org-agenda' config ideas: https://github.com/daviwil/emac
     :after (:any org pdf-view)
     :config
     (setq
-     ;; The WM can handle splits
+     ;; the wm can handle splits
      ;; org-noter-notes-window-location 'other-frame
-     ;; Please stop opening frames
+     ;; please stop opening frames
      org-noter-always-create-frame nil
-     ;; I want to see the whole file
+     ;; i want to see the whole file
      org-noter-hide-other nil
-     ;; Everything is relative to the main notes file
+     ;; everything is relative to the main notes file
      ;; org-noter-notes-search-path (list org_notes)
      org-noter-notes-search-path '("~/projects/org/annotations/")
      org-noter-auto-save-last-location t
@@ -2257,7 +2328,7 @@ Check these lines for `org-agenda' config ideas: https://github.com/daviwil/emac
 
 #+end_src
 
-** Org-Re-Reveal
+** org-re-reveal
 
 #+begin_src emacs-lisp
 
@@ -2265,33 +2336,33 @@ Check these lines for `org-agenda' config ideas: https://github.com/daviwil/emac
 
 #+end_src
 
-** Org-Tree-Slide
+** org-tree-slide
 
 #+begin_src emacs-lisp
 
   (use-package hide-mode-line)
 
   (defun rfh/presentation-setup ()
-    ;; Hide the mode line
+    ;; hide the mode line
     (hide-mode-line-mode 1)
 
-    ;; Display images inline
-    (org-display-inline-images) ;; Can also use org-startup-with-inline-images
+    ;; display images inline
+    (org-display-inline-images) ;; can also use org-startup-with-inline-images
 
-    ;; Scale the text.  The next line is for basic scaling:
+    ;; scale the text.  the next line is for basic scaling:
     (setq text-scale-mode-amount 3)
     (text-scale-mode 1))
 
-    ;; This option is more advanced, allows you to scale other faces too
+    ;; this option is more advanced, allows you to scale other faces too
     ;; (setq-local face-remapping-alist '((default (:height 2.0) variable-pitch)
     ;;                                    (org-verbatim (:height 1.75) org-verbatim)
     ;;                                    (org-block (:height 1.25) org-block))))
 
   (defun rfh/presentation-end ()
-    ;; Show the mode line again
+    ;; show the mode line again
     (hide-mode-line-mode 0)
 
-    ;; Turn off text scale mode (or use the next line if you didn't use text-scale-mode)
+    ;; turn off text scale mode (or use the next line if you didn't use text-scale-mode)
     (text-scale-mode 0))
 
   (use-package org-tree-slide
@@ -2299,15 +2370,15 @@ Check these lines for `org-agenda' config ideas: https://github.com/daviwil/emac
            (org-tree-slide-stop . rfh/presentation-end))
     :custom
     (org-tree-slide-slide-in-effect t)
-    (org-tree-slide-activate-message "Presentation started!")
-    (org-tree-slide-deactivate-message "Presentation finished!")
+    (org-tree-slide-activate-message "presentation started!")
+    (org-tree-slide-deactivate-message "presentation finished!")
     (org-tree-slide-header t)
     (org-tree-slide-breadcrumbs " > ")
     (org-image-actual-width nil))
 
 #+end_src
 
-** Configure Org-Babel
+** configure org-babel
 
 #+begin_src emacs-lisp
 
@@ -2315,25 +2386,11 @@ Check these lines for `org-agenda' config ideas: https://github.com/daviwil/emac
 
 #+end_src
 
-#+RESULTS:
+#+results:
 
-*** Languages
+*** mermaid
 
-#+begin_src emacs-lisp
-
-    (org-babel-do-load-languages
-     'org-babel-load-languages
-     '((emacs-lisp . t)
-       (python . t)
-       (mermaid . t)))
-
-    (push '("conf-unix" . conf-unix) org-src-lang-modes)
-
-#+end_src
-
-*** Mermaid
-
-Requires mermaid-cli
+requires mermaid-cli
 
 #+begin_src emacs-lisp
 
@@ -2342,27 +2399,43 @@ Requires mermaid-cli
     :config
     (setq ob-mermaid-cli-path "/usr/bin/mmdc"))
 
-
 #+end_src
 
-*** Babel-Tangle
-
-Automatically tangle =emacs.org= on save.
+*** languages
 
 #+begin_src emacs-lisp
 
-(defun rfh/org-babel-tangle-config ()
-  (when (string-equal (file-name-directory (buffer-file-name))
-                      (expand-file-name "~/dotfiles/emacs/.emacs.d/"))
-    ;; Dynamic scoping to the rescue
-    (let ((org-confirm-babel-evaluate nil))
-      (org-babel-tangle))))
+    (org-babel-do-load-languages
+     'org-babel-load-languages
+     '((emacs-lisp . t)
+       (python . t)
+       (mermaid . t))
+   )
 
-(add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'rfh/org-babel-tangle-config)))
+    (push '("conf-unix" . conf-unix) org-src-lang-modes)
 
 #+end_src
 
-** Structure Templates
+*** babel-tangle
+
+automatically tangle =emacs.org= on save.
+
+#+begin_src emacs-lisp
+
+  (defun rfh/org-babel-tangle-config ()
+    (when (string-equal (file-name-directory (buffer-file-name))
+                        (expand-file-name "~/dotfiles/emacs/.emacs.d/"))
+      ;; dynamic scoping to the rescue
+      (let ((org-confirm-babel-evaluate nil))
+        (org-babel-tangle))))
+
+  (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'rfh/org-babel-tangle-config)))
+
+  (message "babel loaded!")
+
+#+end_src
+
+** structure templates
 
 #+begin_src emacs-lisp
 
@@ -2372,7 +2445,7 @@ Automatically tangle =emacs.org= on save.
 
 #+end_src
 
-** Close =eval-after-load=
+** close =eval-after-load=
 
 #+begin_src emacs-lisp
 
@@ -2380,15 +2453,17 @@ Automatically tangle =emacs.org= on save.
 
 #+end_src
 
-* Load Emacs Desktop Environment
 
-#+begin_src emacs-lisp
+# * emacs profile
 
-  ;; (load-file "~/.emacs.d/desktop.el")
+# *.config/guix/manifests/emacs.scm:*
 
+# #+begin_src scheme :tangle /home/rfh/.config/guix/manifests/emacs.scm :noweb yes
 
-  ;; (require 'exwm)
-  ;; (require 'exwm-config)
-  ;; (exwm-config-default)
+#   (specifications->manifest
+#    '(;;"emacs"
+#      "emacs-native-comp"
+#      <<packages>>
+#   ))
 
-#+end_src
+# #+end_src

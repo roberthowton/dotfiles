@@ -33,6 +33,18 @@
   (auto-package-update-at-time "09:00")
   )
 
+(unless (package-installed-p 'quelpa)
+  (with-temp-buffer
+    (url-insert-file-contents "https://raw.githubusercontent.com/quelpa/quelpa/master/quelpa.el")
+    (eval-buffer)
+    (quelpa-self-upgrade)))
+
+(quelpa
+ '(quelpa-use-package
+   :fetcher git
+   :url "https://github.com/quelpa/quelpa-use-package.git"))
+(require 'quelpa-use-package)
+
 (scroll-bar-mode -1)            ; disable visible scrollbar
 (tool-bar-mode -1)              ; disable the toolbar
 (tooltip-mode -1)               ; disable tooltips
@@ -79,8 +91,7 @@
   :init (doom-modeline-mode 1)
   ;; :custom ((doom-modeline-height 25))
   :config
-  (setq doom-modeline-icon t)
-  )
+  (setq doom-modeline-icon t))
 
 (use-package minions
   :config (minions-mode 1))
@@ -289,6 +300,10 @@
     :prefix "SPC"
     :global-prefix "C-SPC"))
 
+(use-package undo-tree
+  :config
+  (global-undo-tree-mode))
+
 (use-package evil
   :init
   (setq evil-want-integration t)
@@ -304,7 +319,9 @@
   (evil-global-set-key 'motion "j" 'evil-next-visual-line)
   (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
 
-  (evil-set-initial-state 'messages-buffer-mode 'normal))
+  (evil-set-initial-state 'messages-buffer-mode 'normal)
+  (evil-set-undo-system 'undo-tree)
+  )
 
 (use-package evil-collection
   :after evil
@@ -526,6 +543,11 @@ _SPC_ cancel	_o_nly this   	    _d_elete
 (setq-default tab-width 2)
 (setq-default evil-shift-width tab-width)
 
+(defun rfh/display-line-numbers-hook ()
+  (display-line-numbers-mode t)
+  )
+(add-hook 'prog-mode-hook 'rfh/display-line-numbers-hook)
+
 (use-package counsel
   :bind
   (("M-y" . counsel-yank-pop)
@@ -553,36 +575,38 @@ _SPC_ cancel	_o_nly this   	    _d_elete
 
 (use-package flycheck
   :defer t
-  :hook (lsp-mode . flycheck-mode))
+  :hook
+  (lsp-mode . flycheck-mode)
+  (prog-mode . flycheck-mode))
 
 (use-package yasnippet
-  :hook (prog-mode . yas-minor-mode)
-  :config
-  (yas-reload-all))
+	:hook (prog-mode . yas-minor-mode)
+	:config
+	(yas-reload-all))
 
 (use-package smartparens
-  :hook (prog-mode . smartparens-mode))
+	:hook (prog-mode . smartparens-mode))
 
 (use-package rainbow-delimiters
-  :hook (prog-mode . rainbow-delimiters-mode))
+	:hook (prog-mode . rainbow-delimiters-mode))
 
 (use-package rainbow-mode
-  :defer t
-  :hook (org-mode
-         emacs-lisp-mode
-         web-mode
-         typescript-mode
-         js2-mode))
+	:defer t
+	:hook (org-mode
+				 emacs-lisp-mode
+				 web-mode
+				 typescript-mode
+				 js2-mode))
 
 (use-package lsp-mode
-  :init
-  ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
-  ;; (setq lsp-keymap-prefix "C-c l")
-  :hook (;; replace XXX-mode with concrete major-mode(e. g. python-mode)
-         (js2-mode . lsp)
-         ;; if you want which-key integration
-         (lsp-mode . lsp-enable-which-key-integration))
-  :commands lsp)
+	:init
+	;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
+	;; (setq lsp-keymap-prefix "C-c l")
+	:hook (;; replace XXX-mode with concrete major-mode(e. g. python-mode)
+				 (js2-mode . lsp)
+				 ;; if you want which-key integration
+				 (lsp-mode . lsp-enable-which-key-integration))
+	:commands lsp)
 
 ;; optionally
 (use-package lsp-ui :commands lsp-ui-mode)
@@ -596,26 +620,27 @@ _SPC_ cancel	_o_nly this   	    _d_elete
 ;; (use-package dap-LANGUAGE) to load the dap adapter for your language
 
 (add-hook 'dap-stopped-hook
-          (lambda (arg) (call-interactively #'dap-hydra)))
+					(lambda (arg) (call-interactively #'dap-hydra)))
 
 (add-hook 'emacs-lisp-mode-hook #'flycheck-mode)
 
 (rfh/leader-keys
-  "e"   '(:ignore t :which-key "eval")
-  "eb"  '(eval-buffer :which-key "eval buffer")
-  "eI"  '((lambda () (interactive) (load-file (expand-file-name "~/dotfiles/emacs/.emacs.d/init.el"))) :which-key "eval init.el"))
+	"e"		'(:ignore t :which-key "eval")
+	"eb"	'(eval-buffer :which-key "eval buffer")
+	"eI"	'((lambda () (interactive) (load-file (expand-file-name "~/dotfiles/emacs/.emacs.d/init.el"))) :which-key "eval init.el"))
 (rfh/leader-keys
-  :keymaps '(visual)
-  "er" '(eval-region :which-key "eval region"))
+	:keymaps '(visual)
+	"er" '(eval-region :which-key "eval region"))
 
-;; (use-package js2-mode
-  ;; :mode "\\.js\\'"
-  ;; :config)
+(use-package js2-mode
+  :mode "\\.js\\'"
+  :config
+  (setq js2-basic-offset '2))
 
   ;; (use-package js2-refactor
   ;; :hook (js2-mode . js2-refactor))
 
-  ;; (use-package xref-js2)
+  ;; (se-package xref-js2)
 
   ;; (use-package ac-js2
   ;; :defer t
@@ -625,6 +650,9 @@ _SPC_ cancel	_o_nly this   	    _d_elete
   ;; )
 
 (use-package indium)
+
+(setq lsp-eslint-enable t)
+(setq lsp-eslint-auto-fix-on-save t)
 
 (use-package markdown-mode
   :mode "\\.md\\'"
@@ -644,7 +672,6 @@ _SPC_ cancel	_o_nly this   	    _d_elete
   (add-hook 'markdown-mode-hook 'rfh/markdown-mode-hook))
 
 (use-package web-mode
-  :mode "(\\.\\(html?\\|ejs\\|tsx\\|jsx\\)\\'"
   :config
   (setq-default web-mode-code-indent-offset 2)
   (setq-default web-mode-markup-indent-offset 2)
@@ -703,9 +730,21 @@ _SPC_ cancel	_o_nly this   	    _d_elete
   "gF"  'magit-fetch-all
   "gr"  'magit-rebase)
 
+(use-package blamer
+  :quelpa (blamer :fetcher github :repo "artawower/blamer.el")
+  (blamer-idle-time 0.3)
+  (blamer-min-offset 70)
+  :custom-face
+  (blamer-face ((t :foreground "#7a88cf"
+                   :background nil
+                   :height 140
+                   :italic t)))
+  :config
+  (global-blamer-mode 1))
+
 (use-package term
   :config
-  (setq explicit-shell-file-name "bash") ;; Change this to zsh, etc
+  (setq explicit-shell-file-name "zsh") ;; Change this to zsh, etc
   ;;(setq explicit-zsh-args '())         ;; Use 'explicit-<shell>-args for shell-specific args
 
   ;; Match the default Bash shell prompt.  Update this if you have a custom prompt
@@ -719,6 +758,8 @@ _SPC_ cancel	_o_nly this   	    _d_elete
 (rfh/leader-keys
   "s"  '(:ignore t :which-key "shells")
   "st" '(eshell :which-key "term"))
+
+(use-package vterm)
 
 (defun rfh/configure-eshell ()
   ;; Save command history when commands are entered
@@ -1036,9 +1077,10 @@ T - tag prefix
 
 (use-package mu4e
   :ensure nil
-  :defer 20
-  :load-path "/usr/share/emacs/site-lisp/"
+  ;; :defer 20
+  :load-path "/usr/share/emacs/site-lisp/mu4e"
   :config
+  (setq mu4e-mu-binary "/usr/bin/mu")
 
   ;; Refresh mail using isync every 10 minutes
   (setq mu4e-update-interval (* 10 60))
@@ -1084,8 +1126,8 @@ T - tag prefix
           :enter-func (lambda () (mu4e-message "Switch to personal context"))
           ;; leave-func not defined
           :match-func (lambda (msg)
-		      (when msg
-			    (string= (mu4e-message-field msg :maildir) "/personal")))
+          (when msg
+          (string= (mu4e-message-field msg :maildir) "/personal")))
           :vars '(  ( user-mail-address      . "robert.f.howton@gmail.com"  )
             ( user-full-name     . "Robert Howton" )
             ;; ( mu4e-compose-signature .
@@ -1110,33 +1152,34 @@ T - tag prefix
               (smtpmail-smtp-service . 587)
               ))
        ;; work account
-       (make-mu4e-context
-           :name "Work"
-           :enter-func (lambda () (mu4e-message "Switch to work context"))
-           ;; leave-fun not defined
-           :match-func (lambda (msg)
-			       (when msg
-			            (string= (mu4e-message-field msg :maildir) "/ku")))
-           :vars '(  ( user-mail-address      . "rhowton@ku.edu.tr" )
-             ( user-full-name     . "Robert Howton" )
-             ;; ( mu4e-compose-signature .
-             ;; (concat
-             ;;   "Robert Howton\n"
-             ;;   "Assistant Professor\n"
-             ;;   "Department of Philosophy\n"
-             ;;   "Koç University\n\n"
-             ;;   "roberthowton.com"))
-               (mu4e-drafts-folder . "/ku/[Gmail].Drafts")
-               (mu4e-sent-folder   . "/ku/[Gmail].Sent Mail")
-               (mu4e-trash-folder  . "/ku/[Gmail].Trash")
-               (smtpmail-starttls-credentials . '(("smtp.gmail.com" 587 nil nil)))
-               (smtpmail-smtp-user . "rhowton@ku.edu.tr")
-               (smtpmail-auth-credentials . '(("smtp.gmail.com" 587 "rhowton@ku.edu.tr" nil)))
-               (smtpmail-default-smtp-server . "smtp.gmail.com")
-               (smtpmail-smtp-server . "smtp.gmail.com")
-               (smtpmail-smtp-service . 587)
-               )
-               ))))
+       ;; (make-mu4e-context
+       ;;     :name "Work"
+       ;;     :enter-func (lambda () (mu4e-message "Switch to work context"))
+       ;;     ;; leave-fun not defined
+       ;;     :match-func (lambda (msg)
+       ;;       (when msg
+       ;;            (string= (mu4e-message-field msg :maildir) "/ku")))
+       ;;     :vars '(  ( user-mail-address      . "rhowton@ku.edu.tr" )
+       ;;       ( user-full-name     . "Robert Howton" )
+       ;;       ;; ( mu4e-compose-signature .
+       ;;       ;; (concat
+       ;;       ;;   "Robert Howton\n"
+       ;;       ;;   "Assistant Professor\n"
+       ;;       ;;   "Department of Philosophy\n"
+       ;;       ;;   "Koç University\n\n"
+       ;;       ;;   "roberthowton.com"))
+       ;;         (mu4e-drafts-folder . "/ku/[Gmail].Drafts")
+       ;;         (mu4e-sent-folder   . "/ku/[Gmail].Sent Mail")
+       ;;         (mu4e-trash-folder  . "/ku/[Gmail].Trash")
+       ;;         (smtpmail-starttls-credentials . '(("smtp.gmail.com" 587 nil nil)))
+       ;;         (smtpmail-smtp-user . "rhowton@ku.edu.tr")
+       ;;         (smtpmail-auth-credentials . '(("smtp.gmail.com" 587 "rhowton@ku.edu.tr" nil)))
+       ;;         (smtpmail-default-smtp-server . "smtp.gmail.com")
+       ;;         (smtpmail-smtp-server . "smtp.gmail.com")
+       ;;         (smtpmail-smtp-service . 587)
+       ;;         )
+       ;;         )
+       )))
 
 ;; configure mail send function
 (setq message-send-mail-function 'smtpmail-send-it)
@@ -1176,11 +1219,9 @@ T - tag prefix
         org-msg-signature "
 
 #+begin_signature
-Robert Howton
-Assistant Professor
-Department of Philosophy
-Koç University
+Best,
 
+Robert Howton
 roberthowton.com
 #+end_signature")
 (org-msg-mode)
@@ -1227,7 +1268,7 @@ roberthowton.com
                   (org-level-6 . 1.1)
                   (org-level-7 . 1.1)
                   (org-level-8 . 1.1)))
-    (set-face-attribute (car face) nil :font "Cantarell" :weight 'regular :height (cdr face)))
+    (set-face-attribute (car face) nil :font "Iosevka Aile" :weight 'light :height (cdr face)))
 
   ;; Ensure that anything that should be fixed-pitch in Org files appears that way
   (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
@@ -1419,32 +1460,37 @@ roberthowton.com
 (use-package org-rich-yank)
 
 (use-package org-roam
-     :hook
-     (after-init . org-roam-mode)
-     :custom
-     (org-roam-directory "~/projects/org/"))
+  :init
+  (setq org-roam-v2-ack t)
+  :custom
+  (org-roam-directory "~/projects/org/")
+  (org-roam-completion-everywhere t)
+  :bind (:map org-mode-map
+        ("C-M-i" . completion-at-point))
+  :config
+  (org-roam-setup))
 
 (rfh/leader-keys
   "r"  '(:ignore t :which-key "org-roam")
-  "ri" '(org-roam-insert-immediate :which-key "insert immediate link")
-  "rI" '(org-roam-insert :which-key "insert link")
-  "rf" '(org-roam-find-file :which-key "find/create file")
-  "rr" '(org-roam-buffer-toggle-display :which-key "toggle org-roam buffer")
+  ;; "ri" '(org-roam-insert-immediate :which-key "insert immediate link")
+  "ri" '(org-roam-node-insert :which-key "insert node")
+  "rf" '(org-roam-node-find :which-key "find/create node")
+  "rr" '(org-roam-buffer-toggle :which-key "toggle org-roam buffer")
   "r+" '(org-roam-tag-add :which-key "add org-roam tag")
-  "r-" '(org-roam-tag-delete :which-key "remove org-roam tag")
+  "r-" '(org-roam-tag-remove :which-key "remove org-roam tag")
   )
 
 (use-package org-noter
     :after (:any org pdf-view)
     :config
     (setq
-     ;; The WM can handle splits
+     ;; the wm can handle splits
      ;; org-noter-notes-window-location 'other-frame
-     ;; Please stop opening frames
+     ;; please stop opening frames
      org-noter-always-create-frame nil
-     ;; I want to see the whole file
+     ;; i want to see the whole file
      org-noter-hide-other nil
-     ;; Everything is relative to the main notes file
+     ;; everything is relative to the main notes file
      ;; org-noter-notes-search-path (list org_notes)
      org-noter-notes-search-path '("~/projects/org/annotations/")
      org-noter-auto-save-last-location t
@@ -1456,26 +1502,26 @@ roberthowton.com
 (use-package hide-mode-line)
 
 (defun rfh/presentation-setup ()
-  ;; Hide the mode line
+  ;; hide the mode line
   (hide-mode-line-mode 1)
 
-  ;; Display images inline
-  (org-display-inline-images) ;; Can also use org-startup-with-inline-images
+  ;; display images inline
+  (org-display-inline-images) ;; can also use org-startup-with-inline-images
 
-  ;; Scale the text.  The next line is for basic scaling:
+  ;; scale the text.  the next line is for basic scaling:
   (setq text-scale-mode-amount 3)
   (text-scale-mode 1))
 
-  ;; This option is more advanced, allows you to scale other faces too
+  ;; this option is more advanced, allows you to scale other faces too
   ;; (setq-local face-remapping-alist '((default (:height 2.0) variable-pitch)
   ;;                                    (org-verbatim (:height 1.75) org-verbatim)
   ;;                                    (org-block (:height 1.25) org-block))))
 
 (defun rfh/presentation-end ()
-  ;; Show the mode line again
+  ;; show the mode line again
   (hide-mode-line-mode 0)
 
-  ;; Turn off text scale mode (or use the next line if you didn't use text-scale-mode)
+  ;; turn off text scale mode (or use the next line if you didn't use text-scale-mode)
   (text-scale-mode 0))
 
 (use-package org-tree-slide
@@ -1483,59 +1529,41 @@ roberthowton.com
          (org-tree-slide-stop . rfh/presentation-end))
   :custom
   (org-tree-slide-slide-in-effect t)
-  (org-tree-slide-activate-message "Presentation started!")
-  (org-tree-slide-deactivate-message "Presentation finished!")
+  (org-tree-slide-activate-message "presentation started!")
+  (org-tree-slide-deactivate-message "presentation finished!")
   (org-tree-slide-header t)
   (org-tree-slide-breadcrumbs " > ")
   (org-image-actual-width nil))
 
 (setq org-confirm-babel-evaluate nil)
 
-(org-babel-do-load-languages
- 'org-babel-load-languages
- '((emacs-lisp . t)
-   (python . t)
-   (mermaid . t)))
-
-(push '("conf-unix" . conf-unix) org-src-lang-modes)
-
 (use-package ob-mermaid
   :after org
   :config
   (setq ob-mermaid-cli-path "/usr/bin/mmdc"))
 
+(org-babel-do-load-languages
+  'org-babel-load-languages
+  '((emacs-lisp . t)
+    (python . t)
+    (mermaid . t))
+)
+
+ (push '("conf-unix" . conf-unix) org-src-lang-modes)
+
 (defun rfh/org-babel-tangle-config ()
   (when (string-equal (file-name-directory (buffer-file-name))
                       (expand-file-name "~/dotfiles/emacs/.emacs.d/"))
-    ;; Dynamic scoping to the rescue
+    ;; dynamic scoping to the rescue
     (let ((org-confirm-babel-evaluate nil))
       (org-babel-tangle))))
 
 (add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'rfh/org-babel-tangle-config)))
+
+(message "babel loaded!")
 
 (require 'org-tempo)
 
 (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
 
 )
-
-;; (load-file "~/.emacs.d/desktop.el")
-
-
-;; (require 'exwm)
-;; (require 'exwm-config)
-;; (exwm-config-default)
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(battery-upower-device "battery_BAT2")
- '(package-selected-packages
-   '(indium org-appear yaml-mode ws-butler winum which-key wgrep web-mode visual-fill-column use-package super-save smex smartparens rainbow-mode rainbow-delimiters pdf-tools pandoc-mode ox-pandoc ox-hugo ox-gemini org-tree-slide org-roam org-rich-yank org-re-reveal org-noter org-msg org-bullets olivetti ob-mermaid no-littering minions marginalia magit lsp-ui lsp-ivy ivy-hydra ivy-bibtex impatient-mode hide-mode-line helpful guix general gemini-mode flycheck flx fish-completion exwm expand-region evil-nerd-commenter evil-collection eterm-256color eshell-toggle eshell-syntax-highlighting eshell-git-prompt esh-autosuggest emojify embark elpher doom-themes doom-modeline diredfl dired-single dired-open dired-hide-dotfiles desktop-environment deft default-text-scale dashboard dap-mode counsel-projectile company-box auto-package-update all-the-icons-ivy-rich all-the-icons-ivy all-the-icons-dired alert)))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
