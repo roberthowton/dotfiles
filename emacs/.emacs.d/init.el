@@ -599,14 +599,14 @@ _SPC_ cancel	_o_nly this   	    _d_elete
 				 js2-mode))
 
 (use-package lsp-mode
-	:init
-	;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
-	;; (setq lsp-keymap-prefix "C-c l")
-	:hook (;; replace XXX-mode with concrete major-mode(e. g. python-mode)
-				 (js2-mode . lsp)
-				 ;; if you want which-key integration
-				 (lsp-mode . lsp-enable-which-key-integration))
-	:commands lsp)
+  :init
+  ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
+  ;; (setq lsp-keymap-prefix "C-c l")
+  :hook (;; replace XXX-mode with concrete major-mode(e. g. python-mode)
+         (js2-mode . lsp)
+         ;; if you want which-key integration
+         (lsp-mode . lsp-enable-which-key-integration))
+  :commands lsp)
 
 ;; optionally
 (use-package lsp-ui :commands lsp-ui-mode)
@@ -620,7 +620,10 @@ _SPC_ cancel	_o_nly this   	    _d_elete
 ;; (use-package dap-LANGUAGE) to load the dap adapter for your language
 
 (add-hook 'dap-stopped-hook
-					(lambda (arg) (call-interactively #'dap-hydra)))
+          (lambda (arg) (call-interactively #'dap-hydra)))
+
+(with-eval-after-load 'lsp-mode
+  (add-hook 'lsp-mode-hook #'lsp-enable-which-key-integration))
 
 (add-hook 'emacs-lisp-mode-hook #'flycheck-mode)
 
@@ -1567,3 +1570,18 @@ roberthowton.com
 (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
 
 )
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(nrepl-message-colors
+   '("#032f62" "#6a737d" "#d73a49" "#6a737d" "#005cc5" "#6f42c1" "#d73a49" "#6a737d"))
+ '(package-selected-packages
+   '(github-theme github-modern-theme yaml-mode ws-butler winum which-key wgrep web-mode vterm visual-fill-column undo-tree super-save smex smartparens skewer-mode rainbow-mode rainbow-delimiters quelpa-use-package pdf-tools pandoc-mode page-break-lines ox-pandoc ox-hugo ox-gemini org-tree-slide org-roam org-rich-yank org-re-reveal org-noter org-msg org-bullets org-appear olivetti ob-mermaid no-littering minions marginalia magit lsp-ui lsp-ivy ivy-hydra ivy-bibtex indium impatient-mode hide-mode-line helpful guix general gemini-mode flycheck flx fish-completion expand-region evil-nerd-commenter evil-collection eterm-256color eshell-toggle eshell-syntax-highlighting eshell-git-prompt esh-autosuggest emojify emmet-mode embark elpher doom-themes doom-modeline diredfl dired-single dired-open dired-hide-dotfiles deft default-text-scale dashboard dash-functional dap-mode counsel-projectile company-box blamer auto-package-update all-the-icons-ivy-rich all-the-icons-ivy all-the-icons-dired alert)))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(blamer-face ((t :foreground "#7a88cf" :background nil :height 140 :italic t))))
