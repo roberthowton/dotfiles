@@ -13,32 +13,7 @@ This file generates [[file:init.el][init.el]] which can be loaded by Emacs at st
 ;; NOTE: `init.el' is auto-generated from `emacs.org'. Save changes to `emacs.org' to edit this file.
 #+end_src
 
-** TODO List [3/13]
-
- - [-] Configure =company=
-   - [ ] install backends
-   - [X] =company-box=
- - [X] =M-x= to SPC SPC
- - [X] Hydra for window/buffer switching
- - [ ] Populate leader key bindings
- - [ ] Set up GPG private key support
-   - [ ] Including =epa-pinetry-mode=
- - [ ] `tab-bar-mode'
-   - [ ] Keybindings
-   - [ ] Default tabs
- - [ ] Spell checking
- - [ ] Dashboard icons
-   - [ ] Mail
-   - [ ] Agenda
-   - [ ] Calendar
- - [ ] ox-pandoc
- - [ ] org-re-reveal
- - [ ] LaTeX
- - [X] pdf-tools
- - [ ] mail
-   - [ ] mu4e
-   - [ ] org-msg
-   - [ ] offline imap
+** TODO List
 
 * Package Managment
 ** Initialize Package Sources
@@ -145,7 +120,7 @@ This file generates [[file:init.el][init.el]] which can be loaded by Emacs at st
       (set-face-attribute 'fixed-pitch nil :font "Fira Code" :height rfh/default-font-size)
 
       ;; Set the variable pitch face
-      (set-face-attribute 'variable-pitch nil :font "Fira Sans" :height rfh/default-variable-font-size :weight 'light)
+      (set-face-attribute 'variable-pitch nil :font "Noto Sans" :height rfh/default-variable-font-size :weight 'light)
   )
 
 #+end_src
@@ -161,19 +136,26 @@ This file generates [[file:init.el][init.el]] which can be loaded by Emacs at st
 
 #+begin_src emacs-lisp
 
-  ;; (load-theme 'gruvbox-dark-hard t)
+    (use-package modus-themes
+      :ensure t
+      :demand t
+      :config
+      ;; Add all your customizations prior to loading the themes
+      (setq modus-themes-italic-constructs t
+            modus-themes-bold-constructs nil
+            modus-themes-org-blocks 'tinted-background)
 
-  (use-package doom-themes
-    :init (load-theme 'doom-gruvbox t))
 
-  ;; (use-package 'modus-vivendi-theme
-  ;; :init (load-theme 'modus-vivendi-theme t)
-  ;; )
+      ;; Maybe define some palette overrides, such as by using our presets
+      (setq modus-themes-common-palette-overrides
+            modus-themes-preset-overrides-faint)
 
-  ;; (use-package 'modus-operandi-theme)
+      ;; Load the theme of your choice.
+      (load-theme 'modus-vivendi :no-confirm)
+      :bind ("<f5>" . modus-themes-toggle))
 
-  (use-package rainbow-delimiters
-  :hook (prog-mode . rainbow-delimiters-mode))
+      ;; (use-package doom-themes
+      ;;   :init (load-theme 'doom-gruvbox t))
 
 #+end_src
 
@@ -261,10 +243,6 @@ https://github.com/justbur/emacs-which-key
   :config
   (setq which-key-idle-delay 0))
 
-  ;; (use-package which-key-posframe
-  ;;   :config
-  ;;   (which-key-posframe-mode))
-
 #+end_src
 
 *** Helpful
@@ -273,15 +251,15 @@ https://github.com/Wilfred/helpful
 
 #+begin_src emacs-lisp
 
-(use-package helpful
-:custom
-(counsel-describe-function-function #'helpful-callable)
-(counsel-describe-variable-function #'helpful-variable)
-:bind
-([remap describe-function] . counsel-describe-function)
-([remap describe-command] . helpful-command)
-([remap describe-variable] . counsel-describe-variable)
-([remap describe-key] . helpful-key))
+  (use-package helpful
+  :custom
+  (counsel-describe-function-function #'helpful-callable)
+  (counsel-describe-variable-function #'helpful-variable)
+  :bind
+  ([remap describe-function] . counsel-describe-function)
+  ([remap describe-command] . helpful-command)
+  ([remap describe-variable] . counsel-describe-variable)
+  ([remap describe-key] . helpful-key))
 
 #+end_src
 
@@ -290,11 +268,7 @@ https://github.com/Wilfred/helpful
 #+begin_src emacs-lisp
 
   (use-package hydra
-    :defer 1)
-
-  ;; (use-package hydra-posframe
-  ;;   :load-path "~/.emacs.d/local/hydra-posframe.el"
-  ;;   :hook (after-init . hydra-posframe-enable))
+    :defer t)
 
 #+end_src
 
@@ -687,7 +661,7 @@ The keybindings for this are =C+M+-= and =C+M+=.
 #+begin_src emacs-lisp
 
   (use-package default-text-scale
-    :defer 1
+    :defer t
     :config
     (default-text-scale-mode))
 
@@ -1196,17 +1170,17 @@ Sets the background of HTML color strings in buffers to be the color mentioned.
 
 #+begin_src emacs-lisp
 
-  (use-package blamer
-    :quelpa (blamer :fetcher github :repo "artawower/blamer.el")
-    (blamer-idle-time 0.3)
-    (blamer-min-offset 70)
-    :custom-face
-    (blamer-face ((t :foreground "#7a88cf"
-                     :background nil
-                     :height 140
-                     :italic t)))
-    :config
-    (global-blamer-mode 1))
+  ;; (use-package blamer
+  ;;   :quelpa (blamer :fetcher github :repo "artawower/blamer.el")
+  ;;   (blamer-idle-time 0.3)
+  ;;   (blamer-min-offset 70)
+  ;;   :custom-face
+  ;;   (blamer-face ((t :foreground "#7a88cf"
+  ;;                    :background nil
+  ;;                    :height 140
+  ;;                    :italic t)))
+  ;;   :config
+  ;;   (global-blamer-mode nil))
 
 
 #+end_src
@@ -1283,14 +1257,6 @@ Sets the background of HTML color strings in buffers to be the color mentioned.
 
 #+end_src
 
-*** Fish Completion
-
-#+begin_src emacs-lisp
-
-  (use-package fish-completion
-    :hook (eshell-mode . fish-completion-mode))
-
-#+end_src
 
 *** Syntax Highlighting
 
@@ -1996,7 +1962,7 @@ Workaround for inaccessible pinentry dialogue in exwm. (Make sure you have =pine
                   (org-level-7 . 1.1)
                   (org-level-8 . 1.1)))
     (set-face-attribute (car face) nil :font "Iosevka Aile" :weight 'light :height (cdr face)))
-
+  (message "Made it this far")
   ;; Ensure that anything that should be fixed-pitch in Org files appears that way
   (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
   (set-face-attribute 'org-code nil   :inherit '(shadow fixed-pitch))
@@ -2014,7 +1980,7 @@ Workaround for inaccessible pinentry dialogue in exwm. (Make sure you have =pine
 
   (defun rfh/org-mode-setup ()
     (org-indent-mode)
-    (variable-pitch-mode 1)
+    (variable-pitch-mode nil)
     (visual-line-mode 1))
 
   (use-package org

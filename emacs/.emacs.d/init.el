@@ -66,25 +66,32 @@
     (set-face-attribute 'fixed-pitch nil :font "Fira Code" :height rfh/default-font-size)
 
     ;; Set the variable pitch face
-    (set-face-attribute 'variable-pitch nil :font "Fira Sans" :height rfh/default-variable-font-size :weight 'light)
+    (set-face-attribute 'variable-pitch nil :font "Noto Sans" :height rfh/default-variable-font-size :weight 'light)
 )
 
 (use-package emojify
   :hook (after-init . global-emojify-mode))
 
-;; (load-theme 'gruvbox-dark-hard t)
+(use-package modus-themes
+  :ensure t
+  :demand t
+  :config
+  ;; Add all your customizations prior to loading the themes
+  (setq modus-themes-italic-constructs t
+        modus-themes-bold-constructs nil
+        modus-themes-org-blocks 'tinted-background)
 
-(use-package doom-themes
-  :init (load-theme 'doom-gruvbox t))
 
-;; (use-package 'modus-vivendi-theme
-;; :init (load-theme 'modus-vivendi-theme t)
-;; )
+  ;; Maybe define some palette overrides, such as by using our presets
+  (setq modus-themes-common-palette-overrides
+        modus-themes-preset-overrides-faint)
 
-;; (use-package 'modus-operandi-theme)
+  ;; Load the theme of your choice.
+  (load-theme 'modus-vivendi :no-confirm)
+  :bind ("<f5>" . modus-themes-toggle))
 
-(use-package rainbow-delimiters
-:hook (prog-mode . rainbow-delimiters-mode))
+  ;; (use-package doom-themes
+  ;;   :init (load-theme 'doom-gruvbox t))
 
 (use-package doom-modeline
   :ensure t
@@ -129,10 +136,6 @@
 :config
 (setq which-key-idle-delay 0))
 
-;; (use-package which-key-posframe
-;;   :config
-;;   (which-key-posframe-mode))
-
 (use-package helpful
 :custom
 (counsel-describe-function-function #'helpful-callable)
@@ -144,11 +147,7 @@
 ([remap describe-key] . helpful-key))
 
 (use-package hydra
-  :defer 1)
-
-;; (use-package hydra-posframe
-;;   :load-path "~/.emacs.d/local/hydra-posframe.el"
-;;   :hook (after-init . hydra-posframe-enable))
+  :defer t)
 
 (use-package ivy
   :diminish
@@ -404,7 +403,7 @@
 )
 
 (use-package default-text-scale
-  :defer 1
+  :defer t
   :config
   (default-text-scale-mode))
 
@@ -733,17 +732,17 @@ _SPC_ cancel	_o_nly this   	    _d_elete
   "gF"  'magit-fetch-all
   "gr"  'magit-rebase)
 
-(use-package blamer
-  :quelpa (blamer :fetcher github :repo "artawower/blamer.el")
-  (blamer-idle-time 0.3)
-  (blamer-min-offset 70)
-  :custom-face
-  (blamer-face ((t :foreground "#7a88cf"
-                   :background nil
-                   :height 140
-                   :italic t)))
-  :config
-  (global-blamer-mode 1))
+;; (use-package blamer
+;;   :quelpa (blamer :fetcher github :repo "artawower/blamer.el")
+;;   (blamer-idle-time 0.3)
+;;   (blamer-min-offset 70)
+;;   :custom-face
+;;   (blamer-face ((t :foreground "#7a88cf"
+;;                    :background nil
+;;                    :height 140
+;;                    :italic t)))
+;;   :config
+;;   (global-blamer-mode nil))
 
 (use-package term
   :config
@@ -794,9 +793,6 @@ _SPC_ cancel	_o_nly this   	    _d_elete
 
 (rfh/leader-keys
   "se" '(eshell :which-key "eshell"))
-
-(use-package fish-completion
-  :hook (eshell-mode . fish-completion-mode))
 
 (use-package eshell-syntax-highlighting
   :after esh-mode
@@ -1272,7 +1268,7 @@ roberthowton.com
                   (org-level-7 . 1.1)
                   (org-level-8 . 1.1)))
     (set-face-attribute (car face) nil :font "Iosevka Aile" :weight 'light :height (cdr face)))
-
+  (message "Made it this far")
   ;; Ensure that anything that should be fixed-pitch in Org files appears that way
   (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
   (set-face-attribute 'org-code nil   :inherit '(shadow fixed-pitch))
@@ -1284,7 +1280,7 @@ roberthowton.com
 
 (defun rfh/org-mode-setup ()
   (org-indent-mode)
-  (variable-pitch-mode 1)
+  (variable-pitch-mode nil)
   (visual-line-mode 1))
 
 (use-package org
@@ -1570,18 +1566,3 @@ roberthowton.com
 (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
 
 )
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(nrepl-message-colors
-   '("#032f62" "#6a737d" "#d73a49" "#6a737d" "#005cc5" "#6f42c1" "#d73a49" "#6a737d"))
- '(package-selected-packages
-   '(github-theme github-modern-theme yaml-mode ws-butler winum which-key wgrep web-mode vterm visual-fill-column undo-tree super-save smex smartparens skewer-mode rainbow-mode rainbow-delimiters quelpa-use-package pdf-tools pandoc-mode page-break-lines ox-pandoc ox-hugo ox-gemini org-tree-slide org-roam org-rich-yank org-re-reveal org-noter org-msg org-bullets org-appear olivetti ob-mermaid no-littering minions marginalia magit lsp-ui lsp-ivy ivy-hydra ivy-bibtex indium impatient-mode hide-mode-line helpful guix general gemini-mode flycheck flx fish-completion expand-region evil-nerd-commenter evil-collection eterm-256color eshell-toggle eshell-syntax-highlighting eshell-git-prompt esh-autosuggest emojify emmet-mode embark elpher doom-themes doom-modeline diredfl dired-single dired-open dired-hide-dotfiles deft default-text-scale dashboard dash-functional dap-mode counsel-projectile company-box blamer auto-package-update all-the-icons-ivy-rich all-the-icons-ivy all-the-icons-dired alert)))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(blamer-face ((t :foreground "#7a88cf" :background nil :height 140 :italic t))))
