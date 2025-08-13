@@ -26,7 +26,7 @@ brew bundle
 brew install stow
 ```
 
-2. Clone repo to `./dotfiles`
+2. Clone repo to `~/dotfiles`
 
 3. Run `stow`
 
