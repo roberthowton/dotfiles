@@ -48,3 +48,9 @@ alias cd="z"
 # make neovim default editor
 export EDITOR="nvim"
 export VISUAL="$EDITOR"
+# The following lines have been added by Docker Desktop to enable Docker CLI completions.
+fpath=(/Users/rfh/.docker/completions $fpath)
+autoload -Uz compinit
+compinit
+# End of Docker CLI completions
+export PATH="$HOME/.local/bin:$PATH"

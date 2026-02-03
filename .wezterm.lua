@@ -20,4 +20,8 @@ config.window_decorations = "RESIZE"
 config.enable_tab_bar = true
 
 -- Finally, return the configuration to wezterm:
+config.keys = {
+  {key="Enter", mods="SHIFT", action=wezterm.action{SendString="\x1b\r"}},
+}
+
 return config
