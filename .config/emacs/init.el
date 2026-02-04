@@ -1,0 +1,984 @@
+;; -*- mode: emacs-lisp; lexical-binding: t -*-
+;;
+;; NOTE: `init.el' is auto-generated from `emacs.org'. Save changes to `emacs.org' to edit this file.
+
+(add-hook 'emacs-startup-hook
+    (lambda ()
+      (message "Emacs loaded in %s."
+	       (emacs-init-time))))
+
+(scroll-bar-mode -1)                     ; disable visible scrollbar
+(tool-bar-mode -1)                       ; disable the toolbar
+(tooltip-mode -1)                        ; disable tooltips
+(set-fringe-mode 10)                     ; give some breathing room
+(menu-bar-mode -1)                       ; disable the menu bar
+(setq frame-resize-pixelwise 1)          ; maximize frame without gaps
+(setq visible-bell 1)                    ; set up visible bell
+(pixel-scroll-precision-mode 1)          ; enable smooth scrolling
+(add-hook
+ 'after-init-hook
+ #'recentf-mode 1)                       ; make emacs track opened files
+(global-auto-revert-mode 1)              ; auto-revert buffers on file change
+(customize-set-variable
+ 'global-auto-revert-non-file-buffers t) ; auto-revert dired and other buffers
+(delete-selection-mode)                  ; delete highlighted section when typed over
+(setq use-short-answers t)               ; answer y/n instead of yes/no
+(global-visual-line-mode t)              ; enable visual-line-based editing
+(setq evil-respect-visual-line-mode t)
+(set-default 'truncate-lines t)          ; truncate lines by default
+(setq native-comp-async-report-warnings-errors 'silent) ; suppress native-comp warnings
+
+                                        ; handle files with long lines better
+(setq-default bidi-paragraph-direction 'left-to-right)
+(setq-default bidi-inhibit-bpa t)
+(global-so-long-mode 1)
+
+(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+
+;; store backup files in emacs dir
+(setq backup-directory-alist '(("." . "~/.emacs.d/backup"))
+      backup-by-copying t    ; Don't delink hardlinks
+      version-control t      ; Use version numbers on backups
+      delete-old-versions t  ; Automatically delete excess backups
+      kept-new-versions 20   ; how many of the newest versions to keep
+      kept-old-versions 5    ; and how many of the old
+      )
+
+(setq visible-bell nil)
+(setq ring-bell-function 'ignore)
+
+(require 'ls-lisp)
+(setq ls-lisp-use-insert-directory-program nil)
+
+(setq dired-use-ls-dired nil)
+
+
+(setq-default tab-width 2)
+(setq-default indent-tabs-mode nil)
+
+(require 'ls-lisp)
+(setq ls-lisp-use-insert-directory-program nil)
+
+(setq dired-use-ls-dired nil)
+
+(setq mac-command-modifier 'control)
+(setenv "PATH" (concat (getenv "PATH") ":/Library/TeX/texbin"))
+
+(require 'package)
+
+(setq package-archives '(
+       ("melpa" . "https://melpa.org/packages/")
+       ("melpa stable" . "https://stable.melpa.org/packages/")
+       ("org" . "https://orgmode.org/elpa/")
+       ("elpa" . "https://elpa.gnu.org/packages/")
+       ))
+
+(package-initialize)
+
+(eval-when-compile
+  (require 'use-package))
+
+(setq use-package-always-ensure t)
+
+(use-package diminish)
+
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name
+        "straight/repos/straight.el/bootstrap.el"
+        (or (bound-and-true-p straight-base-dir)
+            user-emacs-directory)))
+      (bootstrap-version 7))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
+
+(straight-use-package 'use-package)
+
+(use-package no-littering)
+
+;; (defgroup rfh '()
+;;   "An interface for setting variables for my personal emacs config"
+;;   :tag "rfh emacs"
+;;   :link '(url-link "https://github.com/roberthowton")
+;;   :group 'emacs)
+
+;; (defun rfh/set-default-font (spec)
+;;   "Set the default font based on SPEC.
+;; SPEC is expected to be a plist with the same key names
+;; as accepted by `set-face-attribute'."
+;;   (when spec
+;;     (apply 'set-face-attribute 'default nil spec)))
+
+;; (defgroup rfh-ui '()
+;;   "User interface related configuration for my personal emacs config"
+;;   :tag "rfh emacs"
+;;   :group 'rfh)
+
+;; (defcustom rfh-ui-default-font nil
+;;   "The configuration of the `default' face.
+;; Use a plist with the same key names as accepted by `set-face-attribute'."
+;;   :group 'rfh-ui
+;;   :type '(plist :key-type: symbol)
+;;   :tag "default font"
+;;   :set (lambda (sym val)
+;; 	 (let ((prev-val (if (boundp 'rfh-default-font)
+;; 			     rfh-default-font
+;; 			 nil)))
+;; 	 (set-default sym val)
+;; 	 (when (and val (not (eq val prev-val)))
+;; 	   (rfh/set-default-font val)))))
+
+;; (setq-default mode-line-format '("%e"
+;; 				 rfh/modeline-buffer-name
+;; 				 " "
+;; 				 rfh/modeline-major-mode
+;; 				 ))
+
+(defvar-local rfh/modeline-major-mode
+    '(:eval
+      (propertize (capitalize (symbol-name major-mode)) 'face 'bold)))
+
+(defvar-local rfh/modeline-buffer-name
+    '(:eval
+      (propertize (buffer-name) 'face 'bold)))
+
+(dolist (construct '(rfh/modeline-major-mode
+		     rfh/modeline-buffer-name))
+  (put construct 'risky-local-variable t))
+
+
+(setq-default mode-line-format '("%e" mode-line-front-space
+				 mode-line-frame-identification
+				 mode-line-buffer-identification
+				 "  "
+				 rfh/modeline-major-mode
+				 (project-mode-line project-mode-line-format)
+				 (vc-mode vc-mode)
+				 mode-line-end-spaces))
+
+(defvar rfh/default-font-size 160)
+
+(defun rfh/set-font-faces ()
+  (message "Setting faces!")
+  (set-face-attribute 'default nil :font "JetBrains Mono" :weight 'light :height rfh/default-font-size)
+
+  ;; Set the fixed pitch face
+  (set-face-attribute 'fixed-pitch nil :font "JetBrains Mono" :weight 'light :height rfh/default-font-size)
+
+  ;; Set the variable pitch face
+  (set-face-attribute 'variable-pitch nil :font "Gill Sans" :weight 'regular :height 180))
+
+(rfh/set-font-faces)
+
+(use-package emojify
+  :config
+  (when (member "Noto Color Emoji" (font-family-list))
+    (set-fontset-font
+     t 'symbol (font-spec :family "Noto Color Emoji") nil 'prepend))
+  (setq emojify-display-style 'unicode)
+  (setq emojify-emoji-styles '(unicode))
+  (bind-key* (kbd "C-c .") #'emojify-insert-emoji)) ; override binding in any mode
+
+(use-package modus-themes
+  :ensure t
+  :demand t
+  :config
+  ;; Add all your customizations prior to loading the themes
+  (setq modus-themes-italic-constructs t
+  modus-themes-bold-constructs nil
+  modus-themes-org-blocks 'tinted-background)
+
+  ;; Maybe define some palette overrides, such as by using our presets
+  (setq modus-themes-common-palette-overrides
+  modus-themes-preset-overrides-faint)
+
+  ;; Load the theme of your choice.
+  (load-theme 'modus-vivendi-tinted :no-confirm)
+  (setq modus-themes-to-toggle '(modus-vivendi-tinted modus-operandi-tinted))
+  :bind ("<f5>" . modus-themes-toggle))
+
+(use-package ef-themes)
+
+(setq modus-themes-mixed-fonts t)
+
+(use-package all-the-icons
+  :if (display-graphic-p)
+  :commands all-the-icons-install-fonts
+  :init
+  (unless (find-font (font-spec :name "all-the-icons"))
+    (all-the-icons-install-fonts t)))
+
+(use-package all-the-icons-dired
+  :if (display-graphic-p)
+  :hook (dired-mode . all-the-icons-dired-mode))
+
+
+(use-package all-the-icons-completion
+  :init
+  (all-the-icons-completion-mode)
+  :hook
+  (marginalia-mode-hook . all-the-icons-completion-marginalia-setup))
+
+(use-package helpful
+  :config
+  (define-key helpful-mode-map [remap revert-buffer] #'helpful-update)
+  (global-set-key [remap describe-command] #'helpful-command)
+  (global-set-key [remap describe-function] #'helpful-callable)
+  (global-set-key [remap describe-key] #'helpful-key)
+  (global-set-key [remap describe-symbol] #'helpful-symbol)
+  (global-set-key [remap describe-variable] #'helpful-variable)
+  (global-set-key (kbd "C-h F") #'helpful-function)
+
+  ;; Bind extra `describe-*' commands
+  (global-set-key (kbd "C-h K") #'describe-keymap))
+
+(use-package elisp-demos
+  :config
+  (advice-add 'helpful-update :after #'elisp-demos-advice-helpful-update))
+
+(defun rfh/display-line-numbers-hook ()
+  (display-line-numbers-mode t)
+  )
+(add-hook 'prog-mode-hook 'rfh/display-line-numbers-hook)
+
+(use-package savehist
+    :init
+    (savehist-mode))
+
+(use-package vertico
+  :init
+  (vertico-mode)
+
+  ;; Different scroll margin
+  ;; (setq vertico-scroll-margin 0)
+
+  ;; Show more candidates
+  ;; (setq vertico-count 20)
+
+  ;; Grow and shrink the Vertico minibuffer
+  (setq vertico-resize t)
+
+  ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
+  (setq vertico-cycle t)
+
+  :config
+  (with-eval-after-load 'evil
+    (define-key vertico-map (kbd "C-j") 'vertico-next)
+    (define-key vertico-map (kbd "C-k") 'vertico-previous)
+    (define-key vertico-map (kbd "M-h") 'vertico-directory-up)))
+
+
+(use-package emacs
+  :init
+  ;; Add prompt indicator to `completing-read-multiple'.
+  ;; We display [CRM<separator>], e.g., [CRM,] if the separator is a comma.
+  (defun crm-indicator (args)
+    (cons (format "[CRM%s] %s"
+	    (replace-regexp-in-string
+	     "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
+	     crm-separator)
+	    (car args))
+    (cdr args)))
+  (advice-add #'completing-read-multiple :filter-args #'crm-indicator)
+
+  ;; Do not allow the cursor in the minibuffer prompt
+  (setq minibuffer-prompt-properties
+  '(read-only t cursor-intangible t face minibuffer-prompt))
+  (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
+
+  ;; Enable recursive minibuffers
+  (setq enable-recursive-minibuffers t))
+
+(use-package orderless
+  :custom
+  (completion-styles '(orderless basic))
+  (completion-category-overrides '((file (styles basic partial-completion)))))
+
+(use-package marginalia
+  :after vertico
+  :init
+  (marginalia-mode)
+  :config
+  (customize-set-variable 'marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil)))
+
+(use-package consult
+  :config
+  (global-set-key (kbd "C-s") 'consult-line)
+  (define-key minibuffer-local-map (kbd "C-r") 'consult-history)
+  (setq completion-in-region-function #'consult-completion-in-region))
+
+(use-package embark
+    :bind
+    (("C-:" . embark-act)       ;; pick some comfortable binding
+     ("C-;" . embark-dwim)        ;; good alternative: M-.
+     ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
+    :init
+    ;; Optionally replace the key help with a completing-read interface
+    (setq prefix-help-command #'embark-prefix-help-command)
+
+    :config
+    ;; Hide the mode line of the Embark live/completions buffers
+    (add-to-list 'display-buffer-alist
+	   '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+	     nil
+	     (window-parameters (mode-line-format . none))))
+    (global-set-key [remap describe-bindings] #'embark-bindings)
+    (global-set-key (kbd "C-.") #'embark-act)
+    (setq prefix-help-command #'embark-prefix-help-command))
+
+(use-package embark-consult
+  :hook
+  (embark-collect-mode . consult-preview-at-point-mode))
+
+(use-package corfu
+  :custom
+  (corfu-auto t)          ;; Enable auto completion
+  (corfu-separator ?_) ;; Set to orderless separator, if not using space
+  (corfu-quit-no-match 'separator)
+  :bind
+  ;; Another key binding can be used, such as S-SPC.
+  (:map corfu-map ("S-SPC" . corfu-insert-separator))
+  :init
+  (global-corfu-mode))
+
+(require 'corfu-popupinfo)
+(corfu-popupinfo-mode t)
+
+(define-key corfu-map (kbd "M-p") #'corfu-popupinfo-scroll-down)
+(define-key corfu-map (kbd "M-n") #'corfu-popupinfo-scroll-up)
+(define-key corfu-map (kbd "M-d") #'corfu-popupinfo-toggle)
+
+(use-package cape
+  :config
+  (add-to-list 'completion-at-point-functions #'cape-file)
+  (add-to-list 'completion-at-point-functions #'cape-dabbrev)
+
+  ;; Silence the pcomplete capf, no errors or messages!
+  ;; Important for corfu
+  (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-silent)
+
+  ;; Ensure that pcomplete does not write to the buffer
+  ;; and behaves as a pure `completion-at-point-function'.
+  (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-purify)
+  (add-hook 'eshell-mode-hook
+            (lambda () (setq-local corfu-quit-at-boundary t
+                                   corfu-quit-no-match t
+                                   corfu-auto nil)
+              (corfu-mode)))
+  )
+
+(use-package which-key
+  :init (which-key-mode)
+  :diminish which-key-mode
+  :config
+  (setq which-key-idle-delay 0))
+
+(use-package evil
+  :init
+  (setq evil-want-integration t)
+  (setq evil-want-keybinding nil)
+  (setq evil-want-C-u-scroll nil)
+  (setq evil-want-C-i-jump nil)
+  :config
+  (evil-mode 1)
+  (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
+  (define-key evil-insert-state-map (kbd "C-h") 'evil-delete-backward-char-and-join)
+
+  ;; Use visual line motions even outside of visual-line-mode buffers
+  (evil-global-set-key 'motion "j" 'evil-next-visual-line)
+  (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
+
+  (evil-set-initial-state 'messages-buffer-mode 'normal)
+  (evil-set-undo-system 'undo-redo))
+
+(use-package evil-collection
+  :diminish evil-collection-unimpaired-mode
+  :after evil
+  :config
+  (evil-collection-init))
+
+(use-package evil-nerd-commenter)
+
+(use-package general
+  :config
+  (general-evil-setup t)
+  (general-create-definer rfh/leader-keys
+    :keymaps '(normal insert visual emacs)
+    :prefix "SPC"
+    :global-prefix "C-M-SPC"))
+
+(rfh/leader-keys
+    "SPC"   '(execute-extended-command :which-key "M-x")
+    "TAB"   '(evil-window-next :which-key "cycle windows")
+    "f"     '(:ignore t :which-key "files")
+    "ff"    '(find-file :which-key "find file")
+    "fr"    '(consult-recent-file :which-key "recent files")
+    "fs"    '(save-buffer :which-key "save current buffer")
+    "fh"    '(consult-org-heading :which-key "go to org heading")
+    "w"     '(:ignore t :which-key "windows")
+    "wq"    '(quit-window :which-key "quit window")
+    "wd"    '(delete-window :which-key "delete window")
+    "wD"    '(delete-other-windows :which-key "delete other windows")
+    "b"     '(:ignore t :which-key "buffers")
+    "bb"    '(consult-buffer :which-key "switch buffer")
+    "bd"    '(kill-current-buffer :which-key "kill current buffer")
+    "bD"    '(kill-buffer :which-key "kill buffer")
+    "t"     '(:ignore t :which-key "toggle")
+    "tv"    '(visual-line-mode :which-key "visual line mode")
+    "tt"    '(modus-themes-toggle :which-key "light/dark mode")
+    "tT"    '(consult-theme :which-key "switch color theme")
+    ";"     '(evilnc-comment-or-uncomment-lines :which-key "comment/uncomment lines")
+;    "B"     '(ivy-bibtex :which-key "bibliography")
+   )
+
+(use-package hydra
+  :defer t)
+
+(rfh/leader-keys
+  "F"  '(:ignore t :which-key "frames")
+  "Fd" '(delete-frame :which-key "delete current frame")
+  "FD" '(delete-other-frames :which-key "delete other frames")
+  "Fm" '(toggle-frame-maximized :which-key "toggle frame maximization")
+)
+
+(use-package ace-window
+  :bind
+  ("M-o" . 'ace-window))
+
+(setq aw-dispatch-always t)
+
+(use-package magit
+  :commands magit-status
+  :custom
+  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
+
+(rfh/leader-keys
+  "g"   '(:ignore t :which-key "git")
+  "gs"  'magit-status
+  "gd"  'magit-diff-unstaged
+  "gc"  'magit-branch-or-checkout
+  "gl"   '(:ignore t :which-key "log")
+  "glc" 'magit-log-current
+  "glf" 'magit-log-buffer-file
+  "gb"  'magit-branch
+  "gP"  'magit-push-current
+  "gp"  'magit-pull-branch
+  "gf"  'magit-fetch
+  "gF"  'magit-fetch-all
+  "gr"  'magit-rebase)
+
+(use-package dired
+    :ensure nil
+    :commands (dired dired-jump)
+    :bind (("C-x C-j" . dired-jump))
+    :custom ((dired-listing-switches "-agho --group-directories-first"))
+    :config
+    (evil-collection-define-key 'normal 'dired-mode-map
+"h" 'dired-single-up-directory
+"l" 'dired-single-buffer)
+    (define-key dired-mode-map [kbd "SPC"] nil)
+    )
+
+  (use-package dired-single
+    :after dired)
+
+  (use-package diredfl
+    :after dired
+    :config
+    (add-hook 'dired-mode-hook 'diredfl-global-mode))
+
+  (use-package dired-open
+    :after dired
+    :config
+    ;; Doesn't work as expected!
+    ;; (add-to-list 'dired-open-functions #'dired-open-xdg t)
+    (setq dired-open-extensions '(
+			    ;; ("png" . "feh")
+			    ("mkv" . "vlc")))
+    )
+
+  (use-package dired-hide-dotfiles
+    ;; :hook (dired-mode . dired-hide-dotfiles-mode)
+    :after dired
+    :config
+    (evil-collection-define-key 'normal 'dired-mode-map
+"H" 'dired-hide-dotfiles-mode))
+
+  (rfh/leader-keys
+  "d" '(dired :which-key "dired"))
+
+;; (use-package openwith
+;;   :config
+;;   (setq openwith-associations
+;;     (list
+;;       (list (openwith-make-extension-regexp
+;;              '("mpg" "mpeg" "mp3" "mp4"
+;;                "avi" "wmv" "wav" "mov" "flv"
+;;                "ogm" "ogg" "mkv"))
+;;              "mpv"
+;;              '(file))
+;;       (list (openwith-make-extension-regexp
+;;              '("xbm" "pbm" "pgm" "ppm" "pnm"
+;;                "png" "gif" "bmp" "tif" "jpeg")) ;; Removed jpg because Telega was
+;;                                                 ;; causing feh to be opened...
+;;              "feh"
+;;              '(file))
+;;       (list (openwith-make-extension-regexp
+;;              '("pdf"))
+;;              "zathura"
+;;              '(file))))
+;;   (openwith-mode 1))
+
+(defun sudo-find-file (file)
+    "Opens FILE with root privileges."
+    (interactive "FFind file: ")
+    (set-buffer
+     (find-file (concat "/sudo::" (expand-file-name file)))))
+
+(rfh/leader-keys
+"fF" '(sudo-find-file :which-key "sudo find file"))
+
+(defun sudo-remote-find-file (file)
+    "Opens repote FILE with root privileges."
+    (interactive "FFind file: ")
+    (setq begin (replace-regexp-in-string  "scp" "ssh" (car (split-string file ":/"))))
+    (setq end (car (cdr (split-string file "@"))))
+    (set-buffer
+     (find-file (format "%s" (concat begin "|sudo:root@" end)))))
+
+(when (executable-find "ispell")
+  (add-hook 'text-mode-hook #'flyspell-mode)
+  (add-hook 'prog-mode-hook #'flyspell-prog-mode))
+
+(electric-pair-mode 1) ; auto-insert matching bracket
+(show-paren-mode 1)    ; turn on paren match highlighting
+
+(use-package apheleia
+  :hook (prog-mode . apheleia-mode)
+  ;; :config
+  ;; (setf (alist-get 'prettier apheleia-formatters)
+  ;; 	'("prettier" "--stdin-filepath" filepath))
+  )
+
+(use-package web-mode
+  :ensure t
+  :mode (("\\.ts\\'" . web-mode)
+	 ("\\.js\\'" . web-mode)
+	 ("\\.mjs\\'" . web-mode)
+	 ("\\.tsx\\'" . web-mode)
+	 ("\\.jsx\\'" . web-mode))
+  :config
+  (setq web-mode-content-types-alist
+	'(("jsx" . "\\.js[x]?\\'")))
+  (setq web-mode-markup-indent-offset 2)
+  (setq web-mode-css-indent-offset 2)
+  (setq web-mode-code-indent-offset 2))
+
+(define-derived-mode astro-mode web-mode "astro")
+(setq auto-mode-alist
+      (append '((".*\\.astro\\'" . astro-mode))
+              auto-mode-alist))
+
+
+(use-package add-node-modules-path
+  :hook
+  (web-mode . add-node-modules-path))
+
+(use-package eglot
+  :ensure t
+  :config
+  (add-to-list 'eglot-server-programs '(web-mode . "typescript-language-server"))
+  (add-to-list 'eglot-server-programs
+               '(astro-mode . ("astro-ls" "--stdio"
+                               :initializationOptions
+                               (:typescript (:tsdk "./node_modules/typescript/lib")))))
+  :init
+  ;; auto start eglot for astro-mode
+  (add-hook 'astro-mode-hook 'eglot-ensure)
+  (add-hook 'web-mode-hook 'eglot-ensure))
+
+(use-package consult-eglot)
+(use-package consult-eglot-embark)
+
+(with-eval-after-load 'embark
+  (with-eval-after-load 'consult-eglot
+    (require 'consult-eglot-embark)
+    (consult-eglot-embark-mode)))
+
+(defvar rfh/treesitter-langs '(javascript typescript tsx css html astro markdown))
+
+(use-package treesit-auto
+  :custom
+  (treesit-auto-install 'prompt) 
+  :config
+  (setq treesit-auto-langs rfh/treesitter-langs)
+  (treesit-auto-add-to-auto-mode-alist rfh/treesitter-langs)
+  (global-treesit-auto-mode)
+  )
+
+(use-package combobulate
+  :straight (combobulate
+             :type git
+             :host github
+             :repo "mickeynp/combobulate"
+             :nonrecursive t)
+  :preface
+  (setq combobulate-key-prefix "C-c o")
+  :hook
+  (web-mode . combobulate-mode)
+  (astro-mode . combobulate-mode)
+  )
+
+(use-package projectile
+  :ensure t
+  :init
+  (projectile-mode +1)
+  :bind (:map projectile-mode-map
+		          ("s-p" . projectile-command-map)
+		          ("C-c p" . projectile-command-map)))
+
+(use-package consult-projectile)
+
+(setq projectile-project-search-path '("~/projects/" "~/dev/" "~/.emacs.d"))
+
+
+(add-to-list 'project-vc-extra-root-markers "tsconfig.json")
+
+(rfh/leader-keys
+  "p"  '(:ignore t :which-key "projectile")
+  "pf" '(projectile-find-file-dwim :which-key "find file")
+  "ps" '(projectile-grep :which-key "grep project")
+  "pp" '(projectile-switch-project :which-key "project switch")
+  )
+
+(use-package pdf-tools
+  :hook
+  (doc-view-mode-hook . (lambda () (require 'pdf-tools)))
+  :config
+  (pdf-tools-install)
+  (setq-default pdf-view-display-size 'fit-width))
+
+(use-package markdown-mode
+  :hook
+  (markdown-mode . rfh/markdown-unhighlight)
+  (markdown-mode . abbrev-mode)
+  (markdown-mode . variable-pitch-mode)
+  :config
+  (defvar rfh/current-line '(0 . 0)
+    "(start . end) of current line in current buffer")
+  (make-variable-buffer-local 'rfh/current-line)
+
+  (defun rfh/unhide-current-line (limit)
+    "Font-lock function"
+    (let ((start (max (point) (car rfh/current-line)))
+    (end (min limit (cdr rfh/current-line))))
+(when (< start end)
+  (remove-text-properties start end
+			  '(invisible t display "" composition ""))
+  (goto-char limit)
+  t)))
+
+  (defun rfh/refontify-on-linemove ()
+    "Post-command-hook"
+    (let* ((start (line-beginning-position))
+     (end (line-beginning-position 2))
+     (needs-update (not (equal start (car rfh/current-line)))))
+(setq rfh/current-line (cons start end))
+(when needs-update
+  (font-lock-fontify-block 3))))
+
+  (defun rfh/markdown-unhighlight ()
+    "Enable markdown concealling"
+    (interactive)
+    (markdown-toggle-markup-hiding 'toggle)
+    (font-lock-add-keywords nil '((rfh/unhide-current-line)) t)
+    (add-hook 'post-command-hook 'rfh/refontify-on-linemove nil t))
+  :custom-face
+  (markdown-header-delimiter-face ((t (:foreground "#616161" :height 0.9))))
+  (markdown-header-face-1 ((t (:height 1.6  :foreground "#A3BE8C" :weight extra-bold :inherit markdown-header-face))))
+  (markdown-header-face-2 ((t (:height 1.4  :foreground "#EBCB8B" :weight extra-bold :inherit markdown-header-face))))
+  (markdown-header-face-3 ((t (:height 1.2  :foreground "#D08770" :weight extra-bold :inherit markdown-header-face))))
+  (markdown-header-face-4 ((t (:height 1.15 :foreground "#BF616A" :weight bold :inherit markdown-header-face))))
+  (markdown-header-face-5 ((t (:height 1.1  :foreground "#b48ead" :weight bold :inherit markdown-header-face))))
+  (markdown-header-face-6 ((t (:height 1.05 :foreground "#5e81ac" :weight semi-bold :inherit markdown-header-face)))))
+
+(add-to-list 'auto-mode-alist '("\\.mdx\\'" . markdown-mode))
+
+(add-to-list 'auto-mode-alist '("\\.info\\'" . Info-on-current-buffer))
+
+(use-package denote
+  :config
+  (setq
+   denote-directory (expand-file-name "~/Documents/Notes/")
+   denote-known-keywords '("emacs" "philosophy" "dev")
+   denote-infer-keywords t
+   denote-date-prompt-use-org-read-date t)
+  (rfh/leader-keys
+    "n"  '(:ignore t :which-key "notes")
+    "nn" '(denote :which-key "new note")
+    "ns" '(denote-subdirectory :which-key "new note in subdir")
+    "N" '((lambda () (interactive) (dired denote-directory)) :which-key "open notes")
+    )
+  )
+
+(use-package consult-notes
+  :commands (consult-notes
+       consult-notes-search-in-all-notes)
+  :config
+  ;; (setq consult-notes-file-dir-sources '(("denote"  ?d  "~/Documents/Notes/")))
+  (consult-notes-denote-mode))
+
+(rfh/leader-keys
+  "N" '(consult-notes :which-key "open notes")
+  )
+
+(use-package citar
+  :custom
+  (org-cite-global-bibliography '("~/Documents/Library/library.bib"))
+  (org-cite-insert-processor 'citar)
+  (org-cite-follow-processor 'citar)
+  (org-cite-activate-processor 'citar)
+  (citar-bibliography org-cite-global-bibliography)
+  :hook
+  (LaTeX-mode . citar-capf-setup)
+  (org-mode . citar-capf-setup)
+  :bind
+  (:map org-mode-map :package org ("C-c b" . #'org-cite-insert)))
+
+(defvar citar-indicator-files-icons
+  (citar-indicator-create
+   :symbol (all-the-icons-faicon
+      "file-o"
+      :face 'all-the-icons-green
+      :v-adjust -0.1)
+   :function #'citar-has-files
+   :padding "  " ; need this because the default padding is too low for these icons
+   :tag "has:files"))
+
+(defvar citar-indicator-links-icons
+  (citar-indicator-create
+   :symbol (all-the-icons-octicon
+      "link"
+      :face 'all-the-icons-orange
+      :v-adjust 0.01)
+   :function #'citar-has-links
+   :padding "  "
+   :tag "has:links"))
+
+(defvar citar-indicator-notes-icons
+  (citar-indicator-create
+   :symbol (all-the-icons-material
+      "speaker_notes"
+      :face 'all-the-icons-blue
+      :v-adjust -0.3)
+   :function #'citar-has-notes
+   :padding "  "
+   :tag "has:notes"))
+
+(defvar citar-indicator-cited-icons
+  (citar-indicator-create
+   :symbol (all-the-icons-faicon
+      "circle-o"
+      :face 'all-the-icon-green)
+   :function #'citar-is-cited
+   :padding "  "
+   :tag "is:cited"))
+
+
+(setq citar-indicators
+  (list citar-indicator-files-icons
+  citar-indicator-links-icons
+  citar-indicator-notes-icons
+  citar-indicator-cited-icons))
+
+(use-package citar-embark
+  :after citar embark
+  :no-require
+  :config (citar-embark-mode))
+
+(defun rfh/set-org-heading-height ()
+    (set-face-attribute 'org-todo nil :height 0.8)
+    (set-face-attribute 'org-document-title nil :height 1.5)
+    (set-face-attribute 'org-level-1 nil :height 1.4)
+    (set-face-attribute 'org-level-2 nil :height 1.3)
+    (set-face-attribute 'org-level-3 nil :height 1.2)
+    (set-face-attribute 'org-level-4 nil :height 1.1))
+
+(use-package org
+  :hook
+  (org-mode . visual-line-mode)
+  (org-mode . variable-pitch-mode)
+  (org-mode . rfh/set-org-heading-height)
+  :config
+  (setq org-ellipsis " ▾"
+	  org-hide-emphasis-markers t
+	  org-src-fontify-natively t
+	  org-src-tab-acts-natively t
+	  org-edit-src-content-indentation 2
+	  org-src-preserve-indentation nil
+	  org-startup-folded 'content
+	  line-spacing 0.3
+	  org-cycle-separator-lines 2))
+
+
+(with-eval-after-load 'org
+  (rfh/leader-keys
+    "o"   '(:ignore t :which-key "org-mode")
+    "oe" '(org-export-dispatch :which-key "export")
+    "os" '(org-edit-src-code :which-key "edit src block")
+    "oi" '(org-insert-structure-template :which-key "insert structure template")
+    "or" '(org-reload :which-key "reload org-mode")
+    )
+  (setq org-directory "~/Documents/Notes")
+
+  (setq org-default-notes-file (concat org-directory "/inbox.org"))
+
+  (custom-theme-set-faces
+   'user
+   '(org-block ((t (:inherit fixed-pitch))))
+   '(org-code ((t (:inherit (shadow fixed-pitch)))))
+   '(org-document-info ((t (:foreground "dark orange"))))
+   '(org-document-info-keyword ((t (:inherit (shadow fixed-pitch)))))
+   '(org-indent ((t (:inherit (org-hide fixed-pitch)))))
+   '(org-link ((t (:foreground "royal blue" :underline t))))
+   '(org-meta-line ((t (:inherit (font-lock-comment-face fixed-pitch)))))
+   '(org-property-value ((t (:inherit fixed-pitch))) t)
+   '(org-special-keyword ((t (:inherit (font-lock-comment-face fixed-pitch)))))
+   '(org-table ((t (:inherit fixed-pitch :foreground "#83a598"))))
+   '(org-tag ((t (:inherit (shadow fixed-pitch) :weight bold :height 0.8))))
+   '(org-verbatim ((t (:inherit (shadow fixed-pitch))))))
+
+  ;; Make invisible parts of Org elements appear visible.
+  (use-package org-appear
+    :hook
+    (org-mode . org-appear-mode))
+
+
+  ;; Return or mouse-1 click follows link
+  (customize-set-variable 'org-return-follows-link 1)
+  (customize-set-variable 'org-mouse-1-follows-link 1)
+
+  ;; Display links as the description provided
+  (customize-set-variable 'org-link-descriptive 1)
+
+  ;; Hide markup markers
+  (customize-set-variable 'org-hide-emphasis-markers 1)
+
+  ;; disable auto-pairing of "<" in org-mode
+  (add-hook 'org-mode-hook (lambda ()
+			       (setq-local electric-pair-inhibit-predicate
+					   `(lambda (c)
+					      (if (char-equal c ?<) t (,electric-pair-inhibit-predicate c))))))
+  )
+
+(use-package org-modern
+  :custom
+  (global-org-modern-mode t))
+
+;; (use-package org-bullets
+;;   :after org
+;;   :hook (org-mode . org-bullets-mode)
+;;   :custom
+;;   (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
+
+(defun rfh/org-mode-visual-fill ()
+  (setq visual-fill-column-width 80
+  visual-fill-column-center-text t)
+  (visual-fill-column-mode 1))
+
+(use-package visual-fill-column
+  :hook
+  (org-mode . rfh/org-mode-visual-fill)
+  (markdown-mode . rfh/org-mode-visual-fill))
+
+(require 'org-tempo)
+(add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+
+(use-package org-noter
+  :after (:any org pdf-view)
+  :config
+  (setq
+   ;; the wm can handle splits
+   ;; org-noter-notes-window-location 'other-frame
+   ;; please stop opening frames
+   org-noter-always-create-frame nil
+   ;; i want to see the whole file
+   org-noter-hide-other nil
+   ;; everything is relative to the main notes file
+   ;; org-noter-notes-search-path (list org_notes)
+   org-noter-notes-search-path '("~/Documents/Notes/annotations/")
+   org-noter-auto-save-last-location t
+   org-noter-separate-notes-from-heading t)
+  )
+
+  (rfh/leader-keys
+    "L" '((lambda () (interactive) (dired "~/Documents/Library/Zotero Library/")) :which-key "open library")
+    )
+
+(use-package org-roam
+  :init
+  (setq org-roam-v2-ack t)
+  :custom
+  (org-roam-directory "~/projects/org/")
+  (org-roam-completion-everywhere t)
+  :bind (:map org-mode-map
+  ("C-M-i" . completion-at-point))
+  :config
+  (org-roam-db-autosync-enable))
+
+(rfh/leader-keys
+  "r"  '(:ignore t :which-key "org-roam")
+  "ri" '(org-roam-node-insert :which-key "insert node")
+  "rf" '(org-roam-node-find :which-key "find/create node")
+  "rr" '(org-roam-buffer-toggle :which-key "toggle org-roam buffer")
+  "r+" '(org-roam-tag-add :which-key "add org-roam tag")
+  "r-" '(org-roam-tag-remove :which-key "remove org-roam tag")
+  )
+
+(setq org-export-with-smart-quotes t)
+
+;; (use-package ox-hugo
+;;   :after ox)
+
+(use-package pandoc-mode)
+(use-package ox-pandoc
+  :after ox)
+
+(defun rfh/org-beamer-publish-to-pdf (plist filename pub-dir)
+  (org-beamer-publish-to-pdf plist filename (file-name-directory buffer-file-name)))
+
+
+(setq org-publish-project-alist
+      `(("org-lecture"
+         :base-directory (file-name-directory buffer-file-name)
+         :base-extension "org"
+         :exclude ("content.org")
+         :publishing-directory (file-name-directory buffer-file-name)
+         :publishing-function rfh/org-beamer-publish-to-pdf)))
+
+(use-package org-rich-yank)
+
+(setq org-confirm-babel-evaluate nil)
+
+;; pass yaml verbosely
+(defun org-babel-execute:yaml (body params) body)
+
+(defvar rfh/init-dir "~/.emacs.d/")
+;; (defvar rfh/init-dir "~/dotfiles/emacs-29/.config/emacs/")
+
+(defun rfh/org-babel-tangle-config ()
+  (when (string-equal (file-name-directory (buffer-file-name))
+			(expand-file-name rfh/init-dir))
+    ;; dynamic scoping to the rescue
+    (let ((org-confirm-babel-evaluate nil))
+	(org-babel-tangle))))
+
+(add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'rfh/org-babel-tangle-config)))
+
+(message "reached end of init file!")
