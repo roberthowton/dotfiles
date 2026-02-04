@@ -71,6 +71,7 @@
        ("melpa stable" . "https://stable.melpa.org/packages/")
        ("org" . "https://orgmode.org/elpa/")
        ("elpa" . "https://elpa.gnu.org/packages/")
+       ("nongnu" . "https://elpa.nongnu.org/nongnu/")
        ))
 
 (package-initialize)
@@ -395,6 +396,7 @@
   (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
 
   (evil-set-initial-state 'messages-buffer-mode 'normal)
+  (evil-set-initial-state 'vterm-mode 'emacs)
   (evil-set-undo-system 'undo-redo))
 
 (use-package evil-collection
@@ -442,9 +444,15 @@
 (defun rfh/reload-config ()
   "Tangle emacs.org and load init.el."
   (interactive)
-  (org-babel-tangle-file "~/.config/emacs/emacs.org")
-  (load-file "~/.config/emacs/init.el")
-  (message "Config reloaded!"))
+  (let ((init-file "~/.config/emacs/init.el")
+        (org-file "~/.config/emacs/emacs.org"))
+    (when-let ((buf (get-file-buffer init-file)))
+      (with-current-buffer buf
+        (set-buffer-modified-p nil)
+        (kill-buffer)))
+    (org-babel-tangle-file org-file)
+    (load-file init-file)
+    (message "Config reloaded!")))
 
 (use-package hydra
   :defer t)
@@ -482,16 +490,18 @@
   "gF"  'magit-fetch-all
   "gr"  'magit-rebase)
 
+;; (require 'dired-single)
+
 (use-package dired
   :ensure nil
   :commands (dired dired-jump)
   :bind (("C-x C-j" . dired-jump))
-  :custom ((dired-listing-switches "-agho --group-directories-first"))
+  :custom ((dired-listing-switches "-agho"))
   :config
   (evil-collection-define-key 'normal 'dired-mode-map
     "h" 'dired-single-up-directory
     "l" 'dired-single-buffer)
-  (define-key dired-mode-map [kbd "SPC"] nil)
+  (define-key dired-mode-map (kbd "SPC") nil)
   )
 
 (use-package diredfl
@@ -667,10 +677,35 @@
   "pp" '(projectile-switch-project :which-key "project switch")
   )
 
-(use-package vterm
-  :commands vterm
+(use-package eat
+  :commands eat
   :config
-  (setq vterm-max-scrollback 10000))
+  (setq eat-kill-buffer-on-exit t)
+  (evil-set-initial-state 'eat-mode 'emacs))
+
+(use-package websocket
+  :straight (:host github :repo "ahyatt/emacs-websocket"))
+
+(use-package monet
+  :straight (:host github :repo "stevemolitor/monet")
+  :config
+  (monet-mode 1))
+
+(use-package inheritenv
+  :straight (:host github :repo "purcell/inheritenv"))
+
+(use-package claude-code
+  :straight (:host github :repo "stevemolitor/claude-code.el")
+  :after (eat monet inheritenv)
+  :config
+  (claude-code-mode)
+  (add-hook 'claude-code-process-environment-functions
+            #'monet-start-server-function))
+
+(rfh/leader-keys
+  "a"  '(:ignore t :which-key "ai")
+  "ac" '(claude-code :which-key "claude")
+  "am" '(claude-code-transient :which-key "menu"))
 
 (use-package pdf-tools
   :hook
@@ -753,16 +788,12 @@
   (define-hostmode poly-mdx-hostmode :mode 'markdown-mode)
 
   ;; YAML frontmatter innermode
-  (defun rfh/poly-yaml-fixed-pitch ()
-    (face-remap-add-relative 'default :family "monospace"))
-
   (define-innermode poly-mdx-yaml-innermode
     :mode 'yaml-mode
     :head-matcher "\\`---\n"
     :tail-matcher "^---$"
     :head-mode 'host
-    :tail-mode 'host
-    :init-functions '(rfh/poly-yaml-fixed-pitch))
+    :tail-mode 'host)
 
   (define-polymode poly-mdx-mode
     :hostmode 'poly-mdx-hostmode
@@ -770,7 +801,20 @@
 
   (add-to-list 'auto-mode-alist '("\\.mdx\\'" . poly-mdx-mode)))
 
-(with-eval-after-load 'ox-md
+(defun rfh/mdx-frontmatter-fixed-pitch ()
+  "Apply fixed-pitch to YAML frontmatter via font-lock."
+  (font-lock-add-keywords
+   nil
+   '(("\\`\\(---\n\\(?:.*\n\\)*?---\\)"
+      1 'fixed-pitch prepend))
+   t))
+
+(add-hook 'poly-mdx-mode-hook #'rfh/mdx-frontmatter-fixed-pitch)
+
+(add-to-list 'org-src-lang-modes '("yaml-frontmatter" . yaml))
+
+(with-eval-after-load 'ox
+  (require 'ox-md)
   (org-export-define-derived-backend 'mdx 'md
     :menu-entry
     '(?x "Export to MDX"
@@ -778,46 +822,54 @@
           (?o "To file and open" org-mdx-export-to-file-and-open)
           (?b "To buffer" org-mdx-export-as-buffer)))
     :translate-alist '((template . org-mdx-template)
-                       (src-block . org-mdx-src-block))
-    :options-alist '((:mdx-imports "MDX_IMPORTS" nil nil newline)
-                     (:mdx-draft "MDX_DRAFT" nil "false" t)))
+                       (src-block . org-mdx-src-block)
+                       (plain-text . org-mdx-plain-text)))
+
+  (defvar-local org-mdx--frontmatter nil)
 
   (defun org-mdx-template (contents info)
     "Return complete MDX document with YAML frontmatter."
-    (let ((title (org-export-data (plist-get info :title) info))
-          (imports (plist-get info :mdx-imports))
-          (draft (plist-get info :mdx-draft)))
-      (concat "---\n"
-              "title: " title "\n"
-              "draft: " draft "\n"
-              "---\n\n"
-              (when imports (concat imports "\n\n"))
-              contents)))
+    (concat "---\n"
+            (or org-mdx--frontmatter "")
+            "---\n\n"
+            contents))
 
   (defun org-mdx-src-block (src-block _contents info)
-    "Handle JSX source blocks as raw MDX components."
+    "Handle JSX/MDX blocks as raw output, yaml-frontmatter as frontmatter."
     (let ((lang (org-element-property :language src-block))
           (code (org-element-property :value src-block)))
-      (if (member lang '("jsx" "mdx"))
-          code
-        (org-md-src-block src-block nil info))))
+      (cond
+       ((string= lang "yaml-frontmatter")
+        (setq org-mdx--frontmatter code)
+        "")
+       ((member lang '("jsx" "mdx"))
+        code)
+       (t (org-md-src-block src-block nil info)))))
 
-  (defun org-mdx-export-to-file (&optional async subtreep visible-only)
+  (defun org-mdx-plain-text (text info)
+    "Export plain text with Unicode preserved, no HTML entities."
+    (when (plist-get info :with-smart-quotes)
+      (setq text (org-export-activate-smart-quotes text :utf-8 info)))
+    ;; Protect markdown special chars
+    (setq text (replace-regexp-in-string "[`*_\\]" "\\\\\\&" text))
+    text)
+
+  (defun org-mdx-export-to-file (&optional async subtreep visible-only body-only)
     "Export to MDX file."
     (interactive)
     (let ((outfile (org-export-output-file-name ".mdx" subtreep)))
-      (org-export-to-file 'mdx outfile async subtreep visible-only)))
+      (org-export-to-file 'mdx outfile async subtreep visible-only body-only)))
 
-  (defun org-mdx-export-to-file-and-open (&optional async subtreep visible-only)
+  (defun org-mdx-export-to-file-and-open (&optional async subtreep visible-only body-only)
     "Export to MDX file and open."
     (interactive)
-    (let ((outfile (org-mdx-export-to-file async subtreep visible-only)))
+    (let ((outfile (org-mdx-export-to-file async subtreep visible-only body-only)))
       (when outfile (find-file outfile))))
 
-  (defun org-mdx-export-as-buffer (&optional async subtreep visible-only)
+  (defun org-mdx-export-as-buffer (&optional async subtreep visible-only body-only)
     "Export to MDX buffer."
     (interactive)
-    (org-export-to-buffer 'mdx "*Org MDX Export*" async subtreep visible-only)))
+    (org-export-to-buffer 'mdx "*Org MDX Export*" async subtreep visible-only body-only)))
 
 (add-to-list 'auto-mode-alist '("\\.info\\'" . Info-on-current-buffer))
 
