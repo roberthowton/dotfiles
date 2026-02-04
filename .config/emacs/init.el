@@ -414,28 +414,37 @@
     :global-prefix "C-M-SPC"))
 
 (rfh/leader-keys
-    "SPC"   '(execute-extended-command :which-key "M-x")
-    "TAB"   '(evil-window-next :which-key "cycle windows")
-    "f"     '(:ignore t :which-key "files")
-    "ff"    '(find-file :which-key "find file")
-    "fr"    '(consult-recent-file :which-key "recent files")
-    "fs"    '(save-buffer :which-key "save current buffer")
-    "fh"    '(consult-org-heading :which-key "go to org heading")
-    "w"     '(:ignore t :which-key "windows")
-    "wq"    '(quit-window :which-key "quit window")
-    "wd"    '(delete-window :which-key "delete window")
-    "wD"    '(delete-other-windows :which-key "delete other windows")
-    "b"     '(:ignore t :which-key "buffers")
-    "bb"    '(consult-buffer :which-key "switch buffer")
-    "bd"    '(kill-current-buffer :which-key "kill current buffer")
-    "bD"    '(kill-buffer :which-key "kill buffer")
-    "t"     '(:ignore t :which-key "toggle")
-    "tv"    '(visual-line-mode :which-key "visual line mode")
-    "tt"    '(modus-themes-toggle :which-key "light/dark mode")
-    "tT"    '(consult-theme :which-key "switch color theme")
-    ";"     '(evilnc-comment-or-uncomment-lines :which-key "comment/uncomment lines")
-;    "B"     '(ivy-bibtex :which-key "bibliography")
-   )
+  "SPC"   '(execute-extended-command :which-key "M-x")
+  "TAB"   '(evil-window-next :which-key "cycle windows")
+  "f"     '(:ignore t :which-key "files")
+  "ff"    '(find-file :which-key "find file")
+  "fr"    '(consult-recent-file :which-key "recent files")
+  "fs"    '(save-buffer :which-key "save current buffer")
+  "fh"    '(consult-org-heading :which-key "go to org heading")
+  "w"     '(:ignore t :which-key "windows")
+  "wq"    '(quit-window :which-key "quit window")
+  "wd"    '(delete-window :which-key "delete window")
+  "wD"    '(delete-other-windows :which-key "delete other windows")
+  "b"     '(:ignore t :which-key "buffers")
+  "bb"    '(consult-buffer :which-key "switch buffer")
+  "bd"    '(kill-current-buffer :which-key "kill current buffer")
+  "bD"    '(kill-buffer :which-key "kill buffer")
+  "t"     '(:ignore t :which-key "toggle")
+  "tv"    '(visual-line-mode :which-key "visual line mode")
+  "tt"    '(modus-themes-toggle :which-key "light/dark mode")
+  "tT"    '(consult-theme :which-key "switch color theme")
+  ";"     '(evilnc-comment-or-uncomment-lines :which-key "comment/uncomment lines")
+  "c"     '(:ignore t :which-key "config")
+  "ce"    '((lambda () (interactive) (find-file "~/.config/emacs/emacs.org")) :which-key "edit config")
+  "cr"    '(rfh/reload-config :which-key "reload config")
+ )
+
+(defun rfh/reload-config ()
+  "Tangle emacs.org and load init.el."
+  (interactive)
+  (org-babel-tangle-file "~/.config/emacs/emacs.org")
+  (load-file "~/.config/emacs/init.el")
+  (message "Config reloaded!"))
 
 (use-package hydra
   :defer t)
@@ -474,43 +483,40 @@
   "gr"  'magit-rebase)
 
 (use-package dired
-    :ensure nil
-    :commands (dired dired-jump)
-    :bind (("C-x C-j" . dired-jump))
-    :custom ((dired-listing-switches "-agho --group-directories-first"))
-    :config
-    (evil-collection-define-key 'normal 'dired-mode-map
-"h" 'dired-single-up-directory
-"l" 'dired-single-buffer)
-    (define-key dired-mode-map [kbd "SPC"] nil)
-    )
+  :ensure nil
+  :commands (dired dired-jump)
+  :bind (("C-x C-j" . dired-jump))
+  :custom ((dired-listing-switches "-agho --group-directories-first"))
+  :config
+  (evil-collection-define-key 'normal 'dired-mode-map
+    "h" 'dired-single-up-directory
+    "l" 'dired-single-buffer)
+  (define-key dired-mode-map [kbd "SPC"] nil)
+  )
 
-  (use-package dired-single
-    :after dired)
+(use-package diredfl
+  :after dired
+  :config
+  (add-hook 'dired-mode-hook 'diredfl-global-mode))
 
-  (use-package diredfl
-    :after dired
-    :config
-    (add-hook 'dired-mode-hook 'diredfl-global-mode))
+(use-package dired-open
+  :after dired
+  :config
+  ;; Doesn't work as expected!
+  ;; (add-to-list 'dired-open-functions #'dired-open-xdg t)
+  (setq dired-open-extensions '(
+			                          ;; ("png" . "feh")
+			                          ("mkv" . "vlc")))
+  )
 
-  (use-package dired-open
-    :after dired
-    :config
-    ;; Doesn't work as expected!
-    ;; (add-to-list 'dired-open-functions #'dired-open-xdg t)
-    (setq dired-open-extensions '(
-			    ;; ("png" . "feh")
-			    ("mkv" . "vlc")))
-    )
+(use-package dired-hide-dotfiles
+  ;; :hook (dired-mode . dired-hide-dotfiles-mode)
+  :after dired
+  :config
+  (evil-collection-define-key 'normal 'dired-mode-map
+    "H" 'dired-hide-dotfiles-mode))
 
-  (use-package dired-hide-dotfiles
-    ;; :hook (dired-mode . dired-hide-dotfiles-mode)
-    :after dired
-    :config
-    (evil-collection-define-key 'normal 'dired-mode-map
-"H" 'dired-hide-dotfiles-mode))
-
-  (rfh/leader-keys
+(rfh/leader-keys
   "d" '(dired :which-key "dired"))
 
 ;; (use-package openwith
@@ -560,11 +566,14 @@
 (show-paren-mode 1)    ; turn on paren match highlighting
 
 (use-package apheleia
-  :hook (prog-mode . apheleia-mode)
-  ;; :config
-  ;; (setf (alist-get 'prettier apheleia-formatters)
-  ;; 	'("prettier" "--stdin-filepath" filepath))
-  )
+  :hook
+  (prog-mode . apheleia-mode)
+  (markdown-mode . apheleia-mode)
+  (astro-mode . apheleia-mode)
+  :config
+  (setf (alist-get 'prettier-mdx apheleia-formatters)
+        '("prettier" "--parser" "mdx" "--stdin-filepath" filepath))
+  (setf (alist-get 'poly-mdx-mode apheleia-mode-alist) 'prettier-mdx))
 
 (use-package web-mode
   :ensure t
@@ -588,7 +597,8 @@
 
 (use-package add-node-modules-path
   :hook
-  (web-mode . add-node-modules-path))
+  (web-mode . add-node-modules-path)
+  (astro-mode . add-node-modules-path))
 
 (use-package eglot
   :ensure t
@@ -657,6 +667,11 @@
   "pp" '(projectile-switch-project :which-key "project switch")
   )
 
+(use-package vterm
+  :commands vterm
+  :config
+  (setq vterm-max-scrollback 10000))
+
 (use-package pdf-tools
   :hook
   (doc-view-mode-hook . (lambda () (require 'pdf-tools)))
@@ -669,7 +684,26 @@
   (markdown-mode . rfh/markdown-unhighlight)
   (markdown-mode . abbrev-mode)
   (markdown-mode . variable-pitch-mode)
+  (markdown-mode . outline-minor-mode)
+  :custom
+  (markdown-fontify-code-blocks-natively t)
   :config
+  ;; Evil fold bindings for outline-minor-mode
+  (with-eval-after-load 'evil
+    (evil-define-key 'normal markdown-mode-map
+      "za" 'outline-toggle-children
+      "zc" 'outline-hide-subtree
+      "zo" 'outline-show-subtree
+      "zM" 'outline-hide-body
+      "zR" 'outline-show-all))
+
+  ;; Leader keys for markdown
+  (rfh/leader-keys
+    "m"  '(:ignore t :which-key "markdown")
+    "mh" '(consult-imenu :which-key "headings")
+    "ml" '(markdown-insert-link :which-key "insert link")
+    "mL" '(markdown-follow-link-at-point :which-key "follow link")
+    "mi" '(markdown-insert-image :which-key "insert image"))
   (defvar rfh/current-line '(0 . 0)
     "(start . end) of current line in current buffer")
   (make-variable-buffer-local 'rfh/current-line)
@@ -708,7 +742,82 @@
   (markdown-header-face-5 ((t (:height 1.1  :foreground "#b48ead" :weight bold :inherit markdown-header-face))))
   (markdown-header-face-6 ((t (:height 1.05 :foreground "#5e81ac" :weight semi-bold :inherit markdown-header-face)))))
 
-(add-to-list 'auto-mode-alist '("\\.mdx\\'" . markdown-mode))
+(use-package yaml-mode)
+
+(use-package polymode)
+
+(use-package poly-markdown
+  :after polymode
+  :config
+  ;; MDX host = markdown
+  (define-hostmode poly-mdx-hostmode :mode 'markdown-mode)
+
+  ;; YAML frontmatter innermode
+  (defun rfh/poly-yaml-fixed-pitch ()
+    (face-remap-add-relative 'default :family "monospace"))
+
+  (define-innermode poly-mdx-yaml-innermode
+    :mode 'yaml-mode
+    :head-matcher "\\`---\n"
+    :tail-matcher "^---$"
+    :head-mode 'host
+    :tail-mode 'host
+    :init-functions '(rfh/poly-yaml-fixed-pitch))
+
+  (define-polymode poly-mdx-mode
+    :hostmode 'poly-mdx-hostmode
+    :innermodes '(poly-mdx-yaml-innermode))
+
+  (add-to-list 'auto-mode-alist '("\\.mdx\\'" . poly-mdx-mode)))
+
+(with-eval-after-load 'ox-md
+  (org-export-define-derived-backend 'mdx 'md
+    :menu-entry
+    '(?x "Export to MDX"
+         ((?x "To file" org-mdx-export-to-file)
+          (?o "To file and open" org-mdx-export-to-file-and-open)
+          (?b "To buffer" org-mdx-export-as-buffer)))
+    :translate-alist '((template . org-mdx-template)
+                       (src-block . org-mdx-src-block))
+    :options-alist '((:mdx-imports "MDX_IMPORTS" nil nil newline)
+                     (:mdx-draft "MDX_DRAFT" nil "false" t)))
+
+  (defun org-mdx-template (contents info)
+    "Return complete MDX document with YAML frontmatter."
+    (let ((title (org-export-data (plist-get info :title) info))
+          (imports (plist-get info :mdx-imports))
+          (draft (plist-get info :mdx-draft)))
+      (concat "---\n"
+              "title: " title "\n"
+              "draft: " draft "\n"
+              "---\n\n"
+              (when imports (concat imports "\n\n"))
+              contents)))
+
+  (defun org-mdx-src-block (src-block _contents info)
+    "Handle JSX source blocks as raw MDX components."
+    (let ((lang (org-element-property :language src-block))
+          (code (org-element-property :value src-block)))
+      (if (member lang '("jsx" "mdx"))
+          code
+        (org-md-src-block src-block nil info))))
+
+  (defun org-mdx-export-to-file (&optional async subtreep visible-only)
+    "Export to MDX file."
+    (interactive)
+    (let ((outfile (org-export-output-file-name ".mdx" subtreep)))
+      (org-export-to-file 'mdx outfile async subtreep visible-only)))
+
+  (defun org-mdx-export-to-file-and-open (&optional async subtreep visible-only)
+    "Export to MDX file and open."
+    (interactive)
+    (let ((outfile (org-mdx-export-to-file async subtreep visible-only)))
+      (when outfile (find-file outfile))))
+
+  (defun org-mdx-export-as-buffer (&optional async subtreep visible-only)
+    "Export to MDX buffer."
+    (interactive)
+    (org-export-to-buffer 'mdx "*Org MDX Export*" async subtreep visible-only)))
 
 (add-to-list 'auto-mode-alist '("\\.info\\'" . Info-on-current-buffer))
 
@@ -969,8 +1078,7 @@
 ;; pass yaml verbosely
 (defun org-babel-execute:yaml (body params) body)
 
-(defvar rfh/init-dir "~/.emacs.d/")
-;; (defvar rfh/init-dir "~/dotfiles/emacs-29/.config/emacs/")
+(defvar rfh/init-dir "~/.config/emacs/")
 
 (defun rfh/org-babel-tangle-config ()
   (when (string-equal (file-name-directory (buffer-file-name))

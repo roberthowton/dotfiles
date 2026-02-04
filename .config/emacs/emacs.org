@@ -657,8 +657,17 @@ Displays the key bindings following your currently entered incomplete command (a
       "tt"    '(modus-themes-toggle :which-key "light/dark mode")
       "tT"    '(consult-theme :which-key "switch color theme")
       ";"     '(evilnc-comment-or-uncomment-lines :which-key "comment/uncomment lines")
-  ;    "B"     '(ivy-bibtex :which-key "bibliography")
+      "c"     '(:ignore t :which-key "config")
+      "ce"    '((lambda () (interactive) (find-file "~/.config/emacs/emacs.org")) :which-key "edit config")
+      "cr"    '(rfh/reload-config :which-key "reload config")
      )
+
+    (defun rfh/reload-config ()
+      "Tangle emacs.org and load init.el."
+      (interactive)
+      (org-babel-tangle-file "~/.config/emacs/emacs.org")
+      (load-file "~/.config/emacs/init.el")
+      (message "Config reloaded!"))
 
 #+end_src
 *** Hydra
@@ -797,44 +806,41 @@ Dired is a built-in file manager for Emacs that does some pretty amazing things!
 
 #+begin_src emacs-lisp
 
-    (use-package dired
-      :ensure nil
-      :commands (dired dired-jump)
-      :bind (("C-x C-j" . dired-jump))
-      :custom ((dired-listing-switches "-agho --group-directories-first"))
-      :config
-      (evil-collection-define-key 'normal 'dired-mode-map
-	"h" 'dired-single-up-directory
-	"l" 'dired-single-buffer)
-      (define-key dired-mode-map [kbd "SPC"] nil)
-      )
+  (use-package dired
+    :ensure nil
+    :commands (dired dired-jump)
+    :bind (("C-x C-j" . dired-jump))
+    :custom ((dired-listing-switches "-agho --group-directories-first"))
+    :config
+    (evil-collection-define-key 'normal 'dired-mode-map
+      "h" 'dired-single-up-directory
+      "l" 'dired-single-buffer)
+    (define-key dired-mode-map [kbd "SPC"] nil)
+    )
 
-    (use-package dired-single
-      :after dired)
+  (use-package diredfl
+    :after dired
+    :config
+    (add-hook 'dired-mode-hook 'diredfl-global-mode))
 
-    (use-package diredfl
-      :after dired
-      :config
-      (add-hook 'dired-mode-hook 'diredfl-global-mode))
+  (use-package dired-open
+    :after dired
+    :config
+    ;; Doesn't work as expected!
+    ;; (add-to-list 'dired-open-functions #'dired-open-xdg t)
+    (setq dired-open-extensions '(
+  			                          ;; ("png" . "feh")
+  			                          ("mkv" . "vlc")))
+    )
 
-    (use-package dired-open
-      :after dired
-      :config
-      ;; Doesn't work as expected!
-      ;; (add-to-list 'dired-open-functions #'dired-open-xdg t)
-      (setq dired-open-extensions '(
-				    ;; ("png" . "feh")
-				    ("mkv" . "vlc")))
-      )
+  (use-package dired-hide-dotfiles
+    ;; :hook (dired-mode . dired-hide-dotfiles-mode)
+    :after dired
+    :config
+    (evil-collection-define-key 'normal 'dired-mode-map
+      "H" 'dired-hide-dotfiles-mode))
 
-    (use-package dired-hide-dotfiles
-      ;; :hook (dired-mode . dired-hide-dotfiles-mode)
-      :after dired
-      :config
-      (evil-collection-define-key 'normal 'dired-mode-map
-	"H" 'dired-hide-dotfiles-mode))
-
-    (rfh/leader-keys
+  (rfh/leader-keys
     "d" '(dired :which-key "dired"))
 #+end_src
 
@@ -1111,6 +1117,18 @@ Enable spell checking when =ispell= is found in =exec-path=.
     )
 #+end_src
 
+* Terminal
+** Vterm
+
+#+begin_src emacs-lisp
+
+  (use-package vterm
+    :commands vterm
+    :config
+    (setq vterm-max-scrollback 10000))
+
+#+end_src
+
 * File Handling
 ** PDF
 
@@ -1152,7 +1170,6 @@ Use =pdf-tools= to read pdf files in Emacs
 
     ;; Leader keys for markdown
     (rfh/leader-keys
-      :keymaps 'markdown-mode-map
       "m"  '(:ignore t :which-key "markdown")
       "mh" '(consult-imenu :which-key "headings")
       "ml" '(markdown-insert-link :which-key "insert link")
@@ -1202,7 +1219,8 @@ Use =pdf-tools= to read pdf files in Emacs
 
 #+begin_src emacs-lisp
 
-  (use-package yaml-mode)
+  (use-package yaml-mode
+    :hook (yaml-mode . (lambda () (buffer-face-set 'fixed-pitch))))
 
   (use-package polymode)
 
@@ -1220,17 +1238,9 @@ Use =pdf-tools= to read pdf files in Emacs
       :head-mode 'host
       :tail-mode 'host)
 
-    ;; JSX/import innermode
-    (define-innermode poly-mdx-jsx-innermode
-      :mode 'web-mode
-      :head-matcher "^import\\|<[A-Z]"
-      :tail-matcher "/>\\|^$"
-      :head-mode 'body
-      :tail-mode 'body)
-
     (define-polymode poly-mdx-mode
       :hostmode 'poly-mdx-hostmode
-      :innermodes '(poly-mdx-yaml-innermode poly-mdx-jsx-innermode))
+      :innermodes '(poly-mdx-yaml-innermode))
 
     (add-to-list 'auto-mode-alist '("\\.mdx\\'" . poly-mdx-mode)))
 
