@@ -189,7 +189,10 @@
   (set-face-attribute 'fixed-pitch nil :font "JetBrains Mono" :weight 'light :height rfh/default-font-size)
 
   ;; Set the variable pitch face
-  (set-face-attribute 'variable-pitch nil :font "Gill Sans" :weight 'regular :height 180))
+  (set-face-attribute 'variable-pitch nil :font "Palatino" :weight 'regular :height 180)
+
+  ;; Set the italic face to use Palatino italic
+  (set-face-attribute 'italic nil :family "Palatino" :slant 'italic))
 
 (rfh/set-font-faces)
 
@@ -804,10 +807,19 @@
   (markdown-header-face-3 ((t (:height 1.2  :foreground "#D08770" :weight extra-bold :inherit markdown-header-face))))
   (markdown-header-face-4 ((t (:height 1.15 :foreground "#BF616A" :weight bold :inherit markdown-header-face))))
   (markdown-header-face-5 ((t (:height 1.1  :foreground "#b48ead" :weight bold :inherit markdown-header-face))))
-  (markdown-header-face-6 ((t (:height 1.05 :foreground "#5e81ac" :weight semi-bold :inherit markdown-header-face)))))
+  (markdown-header-face-6 ((t (:height 1.05 :foreground "#5e81ac" :weight semi-bold :inherit markdown-header-face))))
+  (markdown-italic-face ((t (:family "Palatino" :weight regular :height 180 :slant italic)))))
 
 
 (add-hook 'markdown-mode-hook 'turn-on-orgtbl)
+
+;; Force italic face to actually render as italic
+(with-eval-after-load 'markdown-mode
+  (set-face-attribute 'markdown-italic-face nil
+                      :font (font-spec :family "Georgia"
+                                      :weight 'regular
+                                      :slant 'italic
+                                      :size 18)))
 
 (use-package yaml-mode)
 
