@@ -806,6 +806,9 @@
   (markdown-header-face-5 ((t (:height 1.1  :foreground "#b48ead" :weight bold :inherit markdown-header-face))))
   (markdown-header-face-6 ((t (:height 1.05 :foreground "#5e81ac" :weight semi-bold :inherit markdown-header-face)))))
 
+
+(add-hook 'markdown-mode-hook 'turn-on-orgtbl)
+
 (use-package yaml-mode)
 
 (use-package polymode)
@@ -851,7 +854,8 @@
     :translate-alist '((inner-template . org-mdx-inner-template)
                        (template . org-mdx-template)
                        (src-block . org-mdx-src-block)
-                       (plain-text . org-mdx-plain-text)))
+                       (plain-text . org-mdx-plain-text)
+                       (link . org-mdx-link)))
 
   (defvar-local org-mdx--frontmatter nil)
 
@@ -888,6 +892,17 @@
     (setq text (replace-regexp-in-string "[`*_\\]" "\\\\\\&" text))
     text)
 
+  (defun org-mdx-link (link desc info)
+    "Export images as markdown images, delegate others to ox-md."
+    (let* ((type (org-element-property :type link))
+           (path (org-element-property :path link))
+           (raw-link (org-element-property :raw-link link))
+           (is-image (and (member type '("file" "http" "https"))
+                          (string-match-p "\\.\\(png\\|jpg\\|jpeg\\|gif\\|svg\\|webp\\)\\'" path))))
+      (if is-image
+          (format "![%s](%s)" (or desc "") (if (string= type "file") path (concat type ":" path)))
+        (org-md-link link desc info))))
+
   (defun org-mdx-export-to-file (&optional async subtreep visible-only body-only)
     "Export to MDX file."
     (interactive)
@@ -921,6 +936,9 @@
     "N" '((lambda () (interactive) (dired denote-directory)) :which-key "open notes")
     )
   )
+
+(use-package denote-markdown
+  :ensure t)
 
 (use-package consult-notes
   :commands (consult-notes

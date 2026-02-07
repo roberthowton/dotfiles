@@ -1252,21 +1252,21 @@ Use =pdf-tools= to read pdf files in Emacs
     (defun rfh/unhide-current-line (limit)
       "Font-lock function"
       (let ((start (max (point) (car rfh/current-line)))
-	    (end (min limit (cdr rfh/current-line))))
-	(when (< start end)
-	  (remove-text-properties start end
-				  '(invisible t display "" composition ""))
-	  (goto-char limit)
-	  t)))
+      (end (min limit (cdr rfh/current-line))))
+  (when (< start end)
+    (remove-text-properties start end
+  			  '(invisible t display "" composition ""))
+    (goto-char limit)
+    t)))
 
     (defun rfh/refontify-on-linemove ()
       "Post-command-hook"
       (let* ((start (line-beginning-position))
-	     (end (line-beginning-position 2))
-	     (needs-update (not (equal start (car rfh/current-line)))))
-	(setq rfh/current-line (cons start end))
-	(when needs-update
-	  (font-lock-fontify-block 3))))
+       (end (line-beginning-position 2))
+       (needs-update (not (equal start (car rfh/current-line)))))
+  (setq rfh/current-line (cons start end))
+  (when needs-update
+    (font-lock-fontify-block 3))))
 
     (defun rfh/markdown-unhighlight ()
       "Enable markdown concealling"
@@ -1283,6 +1283,8 @@ Use =pdf-tools= to read pdf files in Emacs
     (markdown-header-face-5 ((t (:height 1.1  :foreground "#b48ead" :weight bold :inherit markdown-header-face))))
     (markdown-header-face-6 ((t (:height 1.05 :foreground "#5e81ac" :weight semi-bold :inherit markdown-header-face)))))
 
+
+  (add-hook 'markdown-mode-hook 'turn-on-orgtbl)
 #+end_src
 
 ** Polymode for MDX
@@ -1342,7 +1344,8 @@ Export org-mode files to MDX format with YAML frontmatter. Use =C-c C-e x x= to 
       :translate-alist '((inner-template . org-mdx-inner-template)
                          (template . org-mdx-template)
                          (src-block . org-mdx-src-block)
-                         (plain-text . org-mdx-plain-text)))
+                         (plain-text . org-mdx-plain-text)
+                         (link . org-mdx-link)))
 
     (defvar-local org-mdx--frontmatter nil)
 
@@ -1378,6 +1381,17 @@ Export org-mode files to MDX format with YAML frontmatter. Use =C-c C-e x x= to 
       ;; Protect markdown special chars
       (setq text (replace-regexp-in-string "[`*_\\]" "\\\\\\&" text))
       text)
+
+    (defun org-mdx-link (link desc info)
+      "Export images as markdown images, delegate others to ox-md."
+      (let* ((type (org-element-property :type link))
+             (path (org-element-property :path link))
+             (raw-link (org-element-property :raw-link link))
+             (is-image (and (member type '("file" "http" "https"))
+                            (string-match-p "\\.\\(png\\|jpg\\|jpeg\\|gif\\|svg\\|webp\\)\\'" path))))
+        (if is-image
+            (format "![%s](%s)" (or desc "") (if (string= type "file") path (concat type ":" path)))
+          (org-md-link link desc info))))
 
     (defun org-mdx-export-to-file (&optional async subtreep visible-only body-only)
       "Export to MDX file."
@@ -1426,6 +1440,8 @@ Export org-mode files to MDX format with YAML frontmatter. Use =C-c C-e x x= to 
       )
     )
 
+  (use-package denote-markdown
+    :ensure t)
 #+end_src
 
 ** Consult-Notes
