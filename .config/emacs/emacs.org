@@ -240,12 +240,29 @@ Defines a customization interface for setting variables.
       '(:eval
         (propertize (buffer-name) 'face 'bold)))
 
+  (defvar-local rfh/modeline-evil-state
+      '(:eval
+        (when (bound-and-true-p evil-state)
+          (propertize
+           (pcase evil-state
+             ('normal " [N] ")
+             ('insert " [I] ")
+             ('visual " [V] ")
+             ('replace " [R] ")
+             ('operator " [O] ")
+             ('motion " [M] ")
+             ('emacs " [E] ")
+             (_ " [?] "))
+           'face 'bold))))
+
   (dolist (construct '(rfh/modeline-major-mode
-  		     rfh/modeline-buffer-name))
+  		     rfh/modeline-buffer-name
+                       rfh/modeline-evil-state))
     (put construct 'risky-local-variable t))
 
 
   (setq-default mode-line-format '("%e" mode-line-front-space
+  				 rfh/modeline-evil-state
   				 mode-line-frame-identification
   				 mode-line-buffer-identification
   				 "  "

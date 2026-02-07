@@ -3,9 +3,9 @@
 ;; NOTE: `init.el' is auto-generated from `emacs.org'. Save changes to `emacs.org' to edit this file.
 
 (add-hook 'emacs-startup-hook
-	    (lambda ()
-	      (message "Emacs loaded in %s."
-		       (emacs-init-time))))
+    (lambda ()
+      (message "Emacs loaded in %s."
+	       (emacs-init-time))))
 
 (scroll-bar-mode -1)                     ; disable visible scrollbar
 (tool-bar-mode -1)                       ; disable the toolbar
@@ -148,12 +148,29 @@
     '(:eval
       (propertize (buffer-name) 'face 'bold)))
 
+(defvar-local rfh/modeline-evil-state
+    '(:eval
+      (when (bound-and-true-p evil-state)
+        (propertize
+         (pcase evil-state
+           ('normal " [N] ")
+           ('insert " [I] ")
+           ('visual " [V] ")
+           ('replace " [R] ")
+           ('operator " [O] ")
+           ('motion " [M] ")
+           ('emacs " [E] ")
+           (_ " [?] "))
+         'face 'bold))))
+
 (dolist (construct '(rfh/modeline-major-mode
-		     rfh/modeline-buffer-name))
+		     rfh/modeline-buffer-name
+                     rfh/modeline-evil-state))
   (put construct 'risky-local-variable t))
 
 
 (setq-default mode-line-format '("%e" mode-line-front-space
+				 rfh/modeline-evil-state
 				 mode-line-frame-identification
 				 mode-line-buffer-identification
 				 "  "
@@ -191,12 +208,12 @@
   :config
   ;; Add all your customizations prior to loading the themes
   (setq modus-themes-italic-constructs t
-	  modus-themes-bold-constructs nil
-	  modus-themes-org-blocks 'tinted-background)
+  modus-themes-bold-constructs nil
+  modus-themes-org-blocks 'tinted-background)
 
   ;; Maybe define some palette overrides, such as by using our presets
   (setq modus-themes-common-palette-overrides
-	  modus-themes-preset-overrides-faint)
+  modus-themes-preset-overrides-faint)
 
   ;; Load the theme of your choice.
   (load-theme 'modus-vivendi-tinted :no-confirm)
@@ -280,16 +297,16 @@
   ;; We display [CRM<separator>], e.g., [CRM,] if the separator is a comma.
   (defun crm-indicator (args)
     (cons (format "[CRM%s] %s"
-		    (replace-regexp-in-string
-		     "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
-		     crm-separator)
-		    (car args))
-	    (cdr args)))
+	    (replace-regexp-in-string
+	     "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
+	     crm-separator)
+	    (car args))
+    (cdr args)))
   (advice-add #'completing-read-multiple :filter-args #'crm-indicator)
 
   ;; Do not allow the cursor in the minibuffer prompt
   (setq minibuffer-prompt-properties
-	  '(read-only t cursor-intangible t face minibuffer-prompt))
+  '(read-only t cursor-intangible t face minibuffer-prompt))
   (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
 
   ;; Enable recursive minibuffers
@@ -325,9 +342,9 @@
     :config
     ;; Hide the mode line of the Embark live/completions buffers
     (add-to-list 'display-buffer-alist
-		   '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
-		     nil
-		     (window-parameters (mode-line-format . none))))
+	   '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+	     nil
+	     (window-parameters (mode-line-format . none))))
     (global-set-key [remap describe-bindings] #'embark-bindings)
     (global-set-key (kbd "C-.") #'embark-act)
     (setq prefix-help-command #'embark-prefix-help-command))
@@ -758,21 +775,21 @@
   (defun rfh/unhide-current-line (limit)
     "Font-lock function"
     (let ((start (max (point) (car rfh/current-line)))
-	    (end (min limit (cdr rfh/current-line))))
-	(when (< start end)
-	  (remove-text-properties start end
-				  '(invisible t display "" composition ""))
-	  (goto-char limit)
-	  t)))
+    (end (min limit (cdr rfh/current-line))))
+(when (< start end)
+  (remove-text-properties start end
+			  '(invisible t display "" composition ""))
+  (goto-char limit)
+  t)))
 
   (defun rfh/refontify-on-linemove ()
     "Post-command-hook"
     (let* ((start (line-beginning-position))
-	     (end (line-beginning-position 2))
-	     (needs-update (not (equal start (car rfh/current-line)))))
-	(setq rfh/current-line (cons start end))
-	(when needs-update
-	  (font-lock-fontify-block 3))))
+     (end (line-beginning-position 2))
+     (needs-update (not (equal start (car rfh/current-line)))))
+(setq rfh/current-line (cons start end))
+(when needs-update
+  (font-lock-fontify-block 3))))
 
   (defun rfh/markdown-unhighlight ()
     "Enable markdown concealling"
@@ -907,7 +924,7 @@
 
 (use-package consult-notes
   :commands (consult-notes
-	       consult-notes-search-in-all-notes)
+       consult-notes-search-in-all-notes)
   :config
   ;; (setq consult-notes-file-dir-sources '(("denote"  ?d  "~/Documents/Notes/")))
   (consult-notes-denote-mode))
@@ -1186,7 +1203,7 @@ RESOURCE-TYPE is 'link or 'filename."
 
 (defun rfh/org-mode-visual-fill ()
   (setq visual-fill-column-width 80
-	  visual-fill-column-center-text t)
+  visual-fill-column-center-text t)
   (visual-fill-column-mode 1))
 
 (use-package visual-fill-column
@@ -1225,7 +1242,7 @@ RESOURCE-TYPE is 'link or 'filename."
   (org-roam-directory "~/projects/org/")
   (org-roam-completion-everywhere t)
   :bind (:map org-mode-map
-	  ("C-M-i" . completion-at-point))
+  ("C-M-i" . completion-at-point))
   :config
   (org-roam-db-autosync-enable))
 
