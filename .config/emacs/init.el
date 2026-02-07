@@ -3,9 +3,9 @@
 ;; NOTE: `init.el' is auto-generated from `emacs.org'. Save changes to `emacs.org' to edit this file.
 
 (add-hook 'emacs-startup-hook
-    (lambda ()
-      (message "Emacs loaded in %s."
-	       (emacs-init-time))))
+	    (lambda ()
+	      (message "Emacs loaded in %s."
+		       (emacs-init-time))))
 
 (scroll-bar-mode -1)                     ; disable visible scrollbar
 (tool-bar-mode -1)                       ; disable the toolbar
@@ -24,7 +24,6 @@
 (delete-selection-mode)                  ; delete highlighted section when typed over
 (setq use-short-answers t)               ; answer y/n instead of yes/no
 (global-visual-line-mode t)              ; enable visual-line-based editing
-(setq evil-respect-visual-line-mode t)
 (set-default 'truncate-lines t)          ; truncate lines by default
 (setq native-comp-async-report-warnings-errors 'silent) ; suppress native-comp warnings
 
@@ -192,12 +191,12 @@
   :config
   ;; Add all your customizations prior to loading the themes
   (setq modus-themes-italic-constructs t
-  modus-themes-bold-constructs nil
-  modus-themes-org-blocks 'tinted-background)
+	  modus-themes-bold-constructs nil
+	  modus-themes-org-blocks 'tinted-background)
 
   ;; Maybe define some palette overrides, such as by using our presets
   (setq modus-themes-common-palette-overrides
-  modus-themes-preset-overrides-faint)
+	  modus-themes-preset-overrides-faint)
 
   ;; Load the theme of your choice.
   (load-theme 'modus-vivendi-tinted :no-confirm)
@@ -281,16 +280,16 @@
   ;; We display [CRM<separator>], e.g., [CRM,] if the separator is a comma.
   (defun crm-indicator (args)
     (cons (format "[CRM%s] %s"
-	    (replace-regexp-in-string
-	     "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
-	     crm-separator)
-	    (car args))
-    (cdr args)))
+		    (replace-regexp-in-string
+		     "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
+		     crm-separator)
+		    (car args))
+	    (cdr args)))
   (advice-add #'completing-read-multiple :filter-args #'crm-indicator)
 
   ;; Do not allow the cursor in the minibuffer prompt
   (setq minibuffer-prompt-properties
-  '(read-only t cursor-intangible t face minibuffer-prompt))
+	  '(read-only t cursor-intangible t face minibuffer-prompt))
   (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
 
   ;; Enable recursive minibuffers
@@ -326,9 +325,9 @@
     :config
     ;; Hide the mode line of the Embark live/completions buffers
     (add-to-list 'display-buffer-alist
-	   '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
-	     nil
-	     (window-parameters (mode-line-format . none))))
+		   '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+		     nil
+		     (window-parameters (mode-line-format . none))))
     (global-set-key [remap describe-bindings] #'embark-bindings)
     (global-set-key (kbd "C-.") #'embark-act)
     (setq prefix-help-command #'embark-prefix-help-command))
@@ -363,10 +362,6 @@
   ;; Silence the pcomplete capf, no errors or messages!
   ;; Important for corfu
   (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-silent)
-
-  ;; Ensure that pcomplete does not write to the buffer
-  ;; and behaves as a pure `completion-at-point-function'.
-  (advice-add 'pcomplete-completions-at-point :around #'cape-wrap-purify)
   (add-hook 'eshell-mode-hook
             (lambda () (setq-local corfu-quit-at-boundary t
                                    corfu-quit-no-match t
@@ -381,6 +376,7 @@
   (setq which-key-idle-delay 0))
 
 (use-package evil
+  :ensure t
   :init
   (setq evil-want-integration t)
   (setq evil-want-keybinding nil)
@@ -388,6 +384,7 @@
   (setq evil-want-C-i-jump nil)
   :config
   (evil-mode 1)
+  (setq evil-respect-visual-line-mode t)
   (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
   (define-key evil-insert-state-map (kbd "C-h") 'evil-delete-backward-char-and-join)
 
@@ -400,12 +397,14 @@
   (evil-set-undo-system 'undo-redo))
 
 (use-package evil-collection
+  :ensure t
   :diminish evil-collection-unimpaired-mode
   :after evil
   :config
   (evil-collection-init))
 
-(use-package evil-nerd-commenter)
+(use-package evil-nerd-commenter
+  :ensure t)
 
 (use-package general
   :config
@@ -413,7 +412,13 @@
   (general-create-definer rfh/leader-keys
     :keymaps '(normal insert visual emacs)
     :prefix "SPC"
-    :global-prefix "C-M-SPC"))
+    :global-prefix "C-M-SPC")
+
+  ;; Add C-' as alternative leader key
+  (general-define-key
+   :keymaps '(normal insert visual emacs)
+   "C-'" (general-simulate-key "SPC"
+                                   :which-key "leader")))
 
 (rfh/leader-keys
   "SPC"   '(execute-extended-command :which-key "M-x")
@@ -680,8 +685,8 @@
 (use-package eat
   :commands eat
   :config
-  (setq eat-kill-buffer-on-exit t)
-  (evil-set-initial-state 'eat-mode 'emacs))
+  (evil-set-initial-state 'org-mode 'emacs)
+  (setq eat-kill-buffer-on-exit t))
 
 (use-package websocket
   :straight (:host github :repo "ahyatt/emacs-websocket"))
@@ -696,11 +701,18 @@
 
 (use-package claude-code
   :straight (:host github :repo "stevemolitor/claude-code.el")
-  :after (eat monet inheritenv)
+  :after (monet inheritenv)
+  :bind-keymap ("C-c c" . claude-code-command-map)
   :config
   (claude-code-mode)
   (add-hook 'claude-code-process-environment-functions
-            #'monet-start-server-function))
+            #'monet-start-server-function)
+  ;; Open claude-code in vertical split (side-by-side)
+  (add-to-list 'display-buffer-alist
+    '("\\*claude:.*"
+      (display-buffer-in-direction)
+      (direction . right)
+      (window-width . 0.5))))
 
 (rfh/leader-keys
   "a"  '(:ignore t :which-key "ai")
@@ -746,21 +758,21 @@
   (defun rfh/unhide-current-line (limit)
     "Font-lock function"
     (let ((start (max (point) (car rfh/current-line)))
-    (end (min limit (cdr rfh/current-line))))
-(when (< start end)
-  (remove-text-properties start end
-			  '(invisible t display "" composition ""))
-  (goto-char limit)
-  t)))
+	    (end (min limit (cdr rfh/current-line))))
+	(when (< start end)
+	  (remove-text-properties start end
+				  '(invisible t display "" composition ""))
+	  (goto-char limit)
+	  t)))
 
   (defun rfh/refontify-on-linemove ()
     "Post-command-hook"
     (let* ((start (line-beginning-position))
-     (end (line-beginning-position 2))
-     (needs-update (not (equal start (car rfh/current-line)))))
-(setq rfh/current-line (cons start end))
-(when needs-update
-  (font-lock-fontify-block 3))))
+	     (end (line-beginning-position 2))
+	     (needs-update (not (equal start (car rfh/current-line)))))
+	(setq rfh/current-line (cons start end))
+	(when needs-update
+	  (font-lock-fontify-block 3))))
 
   (defun rfh/markdown-unhighlight ()
     "Enable markdown concealling"
@@ -811,8 +823,6 @@
 
 (add-hook 'poly-mdx-mode-hook #'rfh/mdx-frontmatter-fixed-pitch)
 
-(add-to-list 'org-src-lang-modes '("yaml-frontmatter" . yaml))
-
 (with-eval-after-load 'ox
   (require 'ox-md)
   (org-export-define-derived-backend 'mdx 'md
@@ -821,11 +831,18 @@
          ((?x "To file" org-mdx-export-to-file)
           (?o "To file and open" org-mdx-export-to-file-and-open)
           (?b "To buffer" org-mdx-export-as-buffer)))
-    :translate-alist '((template . org-mdx-template)
+    :translate-alist '((inner-template . org-mdx-inner-template)
+                       (template . org-mdx-template)
                        (src-block . org-mdx-src-block)
                        (plain-text . org-mdx-plain-text)))
 
   (defvar-local org-mdx--frontmatter nil)
+
+  (defun org-mdx-inner-template (contents info)
+    "Return MDX body without TOC, with footnotes."
+    (concat contents
+            "\n"
+            (org-md--footnote-section info)))
 
   (defun org-mdx-template (contents info)
     "Return complete MDX document with YAML frontmatter."
@@ -890,7 +907,7 @@
 
 (use-package consult-notes
   :commands (consult-notes
-       consult-notes-search-in-all-notes)
+	       consult-notes-search-in-all-notes)
   :config
   ;; (setq consult-notes-file-dir-sources '(("denote"  ?d  "~/Documents/Notes/")))
   (consult-notes-denote-mode))
@@ -901,8 +918,7 @@
 
 (use-package citar
   :custom
-  (org-cite-global-bibliography '("~/Documents/Library/library.bib"))
-  (org-cite-insert-processor 'citar)
+  (org-cite-global-bibliography '("~/Documents/Local/Bibliography/library.bib"))    (org-cite-insert-processor 'citar)
   (org-cite-follow-processor 'citar)
   (org-cite-activate-processor 'citar)
   (citar-bibliography org-cite-global-bibliography)
@@ -915,9 +931,9 @@
 (defvar citar-indicator-files-icons
   (citar-indicator-create
    :symbol (all-the-icons-faicon
-      "file-o"
-      :face 'all-the-icons-green
-      :v-adjust -0.1)
+	          "file-o"
+	          :face 'all-the-icons-green
+	          :v-adjust -0.1)
    :function #'citar-has-files
    :padding "  " ; need this because the default padding is too low for these icons
    :tag "has:files"))
@@ -925,9 +941,9 @@
 (defvar citar-indicator-links-icons
   (citar-indicator-create
    :symbol (all-the-icons-octicon
-      "link"
-      :face 'all-the-icons-orange
-      :v-adjust 0.01)
+	          "link"
+	          :face 'all-the-icons-orange
+	          :v-adjust 0.01)
    :function #'citar-has-links
    :padding "  "
    :tag "has:links"))
@@ -935,9 +951,9 @@
 (defvar citar-indicator-notes-icons
   (citar-indicator-create
    :symbol (all-the-icons-material
-      "speaker_notes"
-      :face 'all-the-icons-blue
-      :v-adjust -0.3)
+	          "speaker_notes"
+	          :face 'all-the-icons-blue
+	          :v-adjust -0.3)
    :function #'citar-has-notes
    :padding "  "
    :tag "has:notes"))
@@ -945,23 +961,141 @@
 (defvar citar-indicator-cited-icons
   (citar-indicator-create
    :symbol (all-the-icons-faicon
-      "circle-o"
-      :face 'all-the-icon-green)
+	          "circle-o"
+	          :face 'all-the-icon-green)
    :function #'citar-is-cited
    :padding "  "
    :tag "is:cited"))
 
 
 (setq citar-indicators
-  (list citar-indicator-files-icons
-  citar-indicator-links-icons
-  citar-indicator-notes-icons
-  citar-indicator-cited-icons))
+      (list citar-indicator-files-icons
+	          citar-indicator-links-icons
+	          citar-indicator-notes-icons
+	          citar-indicator-cited-icons))
 
 (use-package citar-embark
   :after citar embark
   :no-require
   :config (citar-embark-mode))
+
+(rfh/leader-keys
+  "B"   '(:ignore t :which-key "bibliography")
+  "Bo"  '(citar-open :which-key "open resource")
+  "Bi"  '(org-cite-insert :which-key "insert citation")
+  "Bn"  '(citar-open-notes :which-key "open notes")
+  "Be"  '(citar-open-entry :which-key "open bib entry")
+  "Bb"  '(citar-select-ref :which-key "browse bibliography")
+  "Br"  '(rfh/insert-yaml-reading-entry :which-key "insert reading entry")
+  "Bf"  '(rfh/select-reading-file :which-key "browse readings files"))
+
+(defun rfh/yaml-escape-string (str)
+    "Wrap STR in double quotes, escaping internal double quotes."
+    (concat "\"" (replace-regexp-in-string "\"" "\\\\\"" str) "\""))
+
+  (defun rfh/citar-get-field (citekey field)
+    "Get FIELD value for CITEKEY from bibliography."
+    (citar-get-value field citekey))
+
+  (defun rfh/citar-format-citation (citekey)
+    "Format citation: Author/Editor. Year. Title. Vol. Location: Press."
+    (cl-flet ((clean (s) (when s (replace-regexp-in-string "[{}]" "" s)))
+              (non-empty (s) (and s (not (string-empty-p s)))))
+      (let* ((type (citar-get-value "=type=" citekey))
+             (author (citar-get-value "author" citekey))
+             (editor (citar-get-value "editor" citekey))
+             (year (or (citar-get-value "year" citekey)
+                       (citar-get-value "date" citekey)))
+             (title (citar-get-value "title" citekey))
+             (volume (citar-get-value "volume" citekey))
+             (address (clean (or (citar-get-value "address" citekey)
+                                 (citar-get-value "location" citekey))))
+             (publisher (clean (citar-get-value "publisher" citekey)))
+             (is-book (member type '("book" "mvbook")))
+             (parts '()))
+        (when (or (non-empty author) (non-empty editor))
+          (setq parts (list (if (non-empty author)
+                                author
+                              (concat editor " (ed.)")))))
+        (when year (setq parts (append parts (list year))))
+        (when title
+          (setq parts (append parts (list (if is-book
+                                              (concat "<em>" title "</em>")
+                                            (concat "\"" title "\""))))))
+        (when volume
+          (setq parts (append parts (list (concat "Vol. " volume)))))
+        (when (or address publisher)
+          (setq parts (append parts (list (concat (or address "")
+                                                  (if (and address publisher) ": " "")
+                                                  (or publisher ""))))))
+        (concat (string-join parts ". ") "."))))
+
+  (defun rfh/reading-dir-from-buffer ()
+    "Derive readings directory from buffer path.
+Pattern-matches .../lecture/SLUG/ → .../readings/SLUG/.
+Works from org-src-edit buffers by checking source buffer marker.
+Returns nil if no match."
+    (let* ((src-marker (bound-and-true-p org-src--beg-marker))
+           (src-buf (and src-marker (marker-buffer src-marker)))
+           (src-file (and src-buf (buffer-file-name src-buf)))
+           (path (or src-file (buffer-file-name))))
+      (when-let* ((match (and path (string-match "\\(.*\\)/lecture/\\([^/]+\\)/" path))))
+        (concat (match-string 1 path) "/readings/" (match-string 2 path) "/"))))
+
+  (defun rfh/select-reading-file (&optional readings-dir)
+    "Select a file from readings directory. Opens file when called interactively.
+READINGS-DIR defaults to result of `rfh/reading-dir-from-buffer'."
+    (interactive)
+    (let* ((readings-dir (or readings-dir (rfh/reading-dir-from-buffer)))
+           (default-directory (or readings-dir default-directory))
+           (path (read-file-name "Reading file: ")))
+      (when (called-interactively-p 'any)
+        (find-file path))
+      (file-name-nondirectory path)))
+
+  (defun rfh/prompt-link-or-filename (&optional readings-dir)
+    "Prompt for link or filename resource.
+Returns (TYPE . VALUE) cons where TYPE is 'link or 'filename.
+READINGS-DIR is passed through to `rfh/select-reading-file'."
+    (let ((choice (completing-read "Resource type: " '("link" "filename") nil t nil nil "filename")))
+      (cons (intern choice)
+            (if (string= choice "link")
+                (read-string "Link: ")
+              (rfh/select-reading-file readings-dir)))))
+
+  (defun rfh/format-yaml-reading-entry (author title citation selection resource-type resource-value)
+    "Format YAML flow mapping for reading entry.
+Uses 4-space indent for '- {', 8-space for fields, 6-space for '}'.
+Omits empty optional fields (citation, selection).
+RESOURCE-TYPE is 'link or 'filename."
+    (let ((lines (list "    - {"
+                       (format "        author: %s," (rfh/yaml-escape-string author)))))
+      (when (and selection (not (string-empty-p selection)))
+        (setq lines (append lines (list (format "        selection: %s," (rfh/yaml-escape-string selection))))))
+      (setq lines (append lines (list (format "        title: %s," (rfh/yaml-escape-string title))
+                                      (format "        %s: %s," (symbol-name resource-type) (rfh/yaml-escape-string resource-value)))))
+      (when (and citation (not (string-empty-p citation)))
+        (setq lines (append lines (list (format "        citation: %s," (rfh/yaml-escape-string citation))))))
+      (setq lines (append lines (list "      }")))
+      (string-join lines "\n")))
+
+  (defun rfh/insert-yaml-reading-entry ()
+    "Insert YAML reading entry at point from bibliography selection."
+    (interactive)
+    (citar-cache--get-bibliographies (citar--bibliography-files) t)
+    (let* ((readings-dir (rfh/reading-dir-from-buffer))
+           (citekey (citar-select-ref))
+           (author (or (rfh/citar-get-field citekey "author")
+                       (rfh/citar-get-field citekey "editor")
+                       ""))
+           (title (or (rfh/citar-get-field citekey "title") ""))
+           (citation (rfh/citar-format-citation citekey))
+           (selection (read-string "Selection (optional): "))
+           (resource (rfh/prompt-link-or-filename readings-dir))
+           (yaml-entry (rfh/format-yaml-reading-entry
+                        author title citation selection
+                        (car resource) (cdr resource))))
+      (insert yaml-entry)))
 
 (defun rfh/set-org-heading-height ()
     (set-face-attribute 'org-todo nil :height 0.8)
@@ -989,6 +1123,8 @@
 
 
 (with-eval-after-load 'org
+  (add-to-list 'org-src-lang-modes '("yaml-frontmatter" . yaml))
+
   (rfh/leader-keys
     "o"   '(:ignore t :which-key "org-mode")
     "oe" '(org-export-dispatch :which-key "export")
@@ -1050,7 +1186,7 @@
 
 (defun rfh/org-mode-visual-fill ()
   (setq visual-fill-column-width 80
-  visual-fill-column-center-text t)
+	  visual-fill-column-center-text t)
   (visual-fill-column-mode 1))
 
 (use-package visual-fill-column
@@ -1089,7 +1225,7 @@
   (org-roam-directory "~/projects/org/")
   (org-roam-completion-everywhere t)
   :bind (:map org-mode-map
-  ("C-M-i" . completion-at-point))
+	  ("C-M-i" . completion-at-point))
   :config
   (org-roam-db-autosync-enable))
 
