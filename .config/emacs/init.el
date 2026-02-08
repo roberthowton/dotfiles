@@ -189,10 +189,10 @@
   (set-face-attribute 'fixed-pitch nil :font "JetBrains Mono" :weight 'light :height rfh/default-font-size)
 
   ;; Set the variable pitch face
-  (set-face-attribute 'variable-pitch nil :font "Palatino" :weight 'regular :height 180)
+  (set-face-attribute 'variable-pitch nil :font "Georgia" :weight 'regular :height 180)
 
-  ;; Set the italic face to use Palatino italic
-  (set-face-attribute 'italic nil :family "Palatino" :slant 'italic))
+  ;; Set the italic face to use Georgia italic
+  (set-face-attribute 'italic nil :family "Georgia" :slant 'italic))
 
 (rfh/set-font-faces)
 
@@ -807,8 +807,7 @@
   (markdown-header-face-3 ((t (:height 1.2  :foreground "#D08770" :weight extra-bold :inherit markdown-header-face))))
   (markdown-header-face-4 ((t (:height 1.15 :foreground "#BF616A" :weight bold :inherit markdown-header-face))))
   (markdown-header-face-5 ((t (:height 1.1  :foreground "#b48ead" :weight bold :inherit markdown-header-face))))
-  (markdown-header-face-6 ((t (:height 1.05 :foreground "#5e81ac" :weight semi-bold :inherit markdown-header-face))))
-  (markdown-italic-face ((t (:family "Palatino" :weight regular :height 180 :slant italic)))))
+  (markdown-header-face-6 ((t (:height 1.05 :foreground "#5e81ac" :weight semi-bold :inherit markdown-header-face)))))
 
 
 (add-hook 'markdown-mode-hook 'turn-on-orgtbl)
@@ -1147,10 +1146,12 @@ RESOURCE-TYPE is 'link or 'filename."
 (defun rfh/set-org-heading-height ()
     (set-face-attribute 'org-todo nil :height 0.8)
     (set-face-attribute 'org-document-title nil :height 1.5)
-    (set-face-attribute 'org-level-1 nil :height 1.4)
-    (set-face-attribute 'org-level-2 nil :height 1.3)
-    (set-face-attribute 'org-level-3 nil :height 1.2)
-    (set-face-attribute 'org-level-4 nil :height 1.1))
+    (set-face-attribute 'org-level-1 nil :height 1.6 :foreground "#A3BE8C" :weight 'extra-bold)
+    (set-face-attribute 'org-level-2 nil :height 1.4 :foreground "#EBCB8B" :weight 'extra-bold)
+    (set-face-attribute 'org-level-3 nil :height 1.2 :foreground "#D08770" :weight 'extra-bold)
+    (set-face-attribute 'org-level-4 nil :height 1.15 :foreground "#BF616A" :weight 'bold)
+    (set-face-attribute 'org-level-5 nil :height 1.1 :foreground "#b48ead" :weight 'bold)
+    (set-face-attribute 'org-level-6 nil :height 1.05 :foreground "#5e81ac" :weight 'semi-bold))
 
 (use-package org
   :hook
