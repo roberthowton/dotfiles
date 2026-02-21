@@ -629,6 +629,9 @@
      (find-file (format "%s" (concat begin "|sudo:root@" end)))))
 
 (when (executable-find "ispell")
+  (use-package flyspell-lazy
+    :config
+    (flyspell-lazy-mode 1))
   (add-hook 'text-mode-hook #'flyspell-mode)
   (add-hook 'prog-mode-hook #'flyspell-prog-mode))
 
@@ -811,6 +814,7 @@
   (defvar rfh/current-line '(0 . 0)
     "(start . end) of current line in current buffer")
   (make-variable-buffer-local 'rfh/current-line)
+  (defvar-local rfh/refontify-timer nil)
 
   (defun rfh/unhide-current-line (limit)
     "Font-lock function"
@@ -823,13 +827,21 @@
   t)))
 
   (defun rfh/refontify-on-linemove ()
-    "Post-command-hook"
+    "Post-command-hook — debounced via idle timer."
     (let* ((start (line-beginning-position))
-     (end (line-beginning-position 2))
-     (needs-update (not (equal start (car rfh/current-line)))))
-(setq rfh/current-line (cons start end))
-(when needs-update
-  (font-lock-fontify-block 3))))
+           (end (line-beginning-position 2))
+           (needs-update (not (equal start (car rfh/current-line)))))
+      (setq rfh/current-line (cons start end))
+      (when needs-update
+        (when rfh/refontify-timer
+          (cancel-timer rfh/refontify-timer))
+        (setq rfh/refontify-timer
+              (run-with-idle-timer 0.1 nil
+                (let ((buf (current-buffer)))
+                  (lambda ()
+                    (when (buffer-live-p buf)
+                      (with-current-buffer buf
+                        (font-lock-fontify-block 3))))))))))
 
   (defun rfh/markdown-unhighlight ()
     "Enable markdown concealling"
