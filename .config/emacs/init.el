@@ -7,14 +7,11 @@
       (message "Emacs loaded in %s."
 	       (emacs-init-time))))
 
-(scroll-bar-mode -1)                     ; disable visible scrollbar
-(tool-bar-mode -1)                       ; disable the toolbar
-(tooltip-mode -1)                        ; disable tooltips
+(tool-bar-mode -1)                       ; disable toolbar
 (set-fringe-mode 10)                     ; give some breathing room
-(menu-bar-mode -1)                       ; disable the menu bar
-(setq frame-resize-pixelwise 1)          ; maximize frame without gaps
-(setq visible-bell 1)                    ; set up visible bell
-(pixel-scroll-precision-mode 1)          ; enable smooth scrolling
+(setq frame-resize-pixelwise t)          ; maximize frame without gaps
+(setq visible-bell nil)                  ; no visible bell
+(setq ring-bell-function 'ignore)        ; no audio bell
 (add-hook
  'after-init-hook
  #'recentf-mode 1)                       ; make emacs track opened files
@@ -42,9 +39,6 @@
       kept-new-versions 20   ; how many of the newest versions to keep
       kept-old-versions 5    ; and how many of the old
       )
-
-(setq visible-bell nil)
-(setq ring-bell-function 'ignore)
 
 (require 'ls-lisp)
 (setq ls-lisp-use-insert-directory-program nil)
@@ -134,20 +128,6 @@
 ;; 	 (when (and val (not (eq val prev-val)))
 ;; 	   (rfh/set-default-font val)))))
 
-;; (setq-default mode-line-format '("%e"
-;; 				 rfh/modeline-buffer-name
-;; 				 " "
-;; 				 rfh/modeline-major-mode
-;; 				 ))
-
-(defvar-local rfh/modeline-major-mode
-    '(:eval
-      (propertize (capitalize (symbol-name major-mode)) 'face 'bold)))
-
-(defvar-local rfh/modeline-buffer-name
-    '(:eval
-      (propertize (buffer-name) 'face 'bold)))
-
 (defvar-local rfh/modeline-evil-state
     '(:eval
       (when (bound-and-true-p evil-state)
@@ -163,21 +143,60 @@
            (_ " [?] "))
          'face 'bold))))
 
-(dolist (construct '(rfh/modeline-major-mode
-		     rfh/modeline-buffer-name
-                     rfh/modeline-evil-state))
-  (put construct 'risky-local-variable t))
+(put 'rfh/modeline-evil-state 'risky-local-variable t)
 
+(use-package minions
+  :config
+  (setq minions-mode-line-lighter "…")
+  (setq minions-mode-line-delimiters '("" . ""))
+  (minions-mode +1))
 
-(setq-default mode-line-format '("%e" mode-line-front-space
-				 rfh/modeline-evil-state
-				 mode-line-frame-identification
-				 mode-line-buffer-identification
-				 "  "
-				 rfh/modeline-major-mode
-				 (project-mode-line project-mode-line-format)
-				 (vc-mode vc-mode)
-				 mode-line-end-spaces))
+(use-package moody
+  :config
+  (setq x-underline-at-descent-line t)
+  (setq-default mode-line-format
+                '(" "
+                  mode-line-front-space
+                  rfh/modeline-evil-state
+                  mode-line-client
+                  mode-line-frame-identification
+                  mode-line-buffer-identification
+                  " "
+                  mode-line-position
+                  (vc-mode vc-mode)
+                  (project-mode-line project-mode-line-format)
+                  " " mode-line-modes
+                  mode-line-misc-info
+                  mode-line-end-spaces))
+  (moody-replace-mode-line-buffer-identification)
+  (moody-replace-vc-mode))
+
+;; Hide cursor in inactive windows.
+(setq cursor-in-non-selected-windows nil)
+
+;; Avoid native OS dialogs (use minibuffer instead).
+(setq use-dialog-box nil)
+
+;; Remove thin border (visible since macOS Monterey).
+(set-frame-parameter nil 'internal-border-width 0)
+
+;; Remove continuation character fringe indicator.
+(setq-default fringe-indicator-alist
+              (delq (assq 'continuation fringe-indicator-alist)
+                    fringe-indicator-alist))
+
+;; Prevent accidental zoom (trackpad pinch / Ctrl+wheel).
+(global-set-key (kbd "<pinch>") 'ignore)
+(global-set-key (kbd "<C-wheel-up>") 'ignore)
+(global-set-key (kbd "<C-wheel-down>") 'ignore)
+
+;; Prevent accidental frame suspension.
+(global-unset-key (kbd "C-z"))
+(global-unset-key (kbd "C-x C-z"))
+
+;; Intentional text scaling.
+(global-set-key (kbd "C-+") 'text-scale-increase)
+(global-set-key (kbd "C--") 'text-scale-decrease)
 
 (defvar rfh/default-font-size 160)
 
@@ -244,6 +263,14 @@
   (all-the-icons-completion-mode)
   :hook
   (marginalia-mode-hook . all-the-icons-completion-marginalia-setup))
+
+(use-package ultra-scroll
+  :straight (:host github :repo "jdtsmith/ultra-scroll")
+  :custom
+  (scroll-conservatively 3)
+  (scroll-margin 0)
+  :config
+  (ultra-scroll-mode +1))
 
 (use-package helpful
   :config
@@ -489,6 +516,14 @@
   "Fm" '(toggle-frame-maximized :which-key "toggle frame maximization")
 )
 
+(use-package winner
+  :ensure nil
+  :bind (("M-<escape>" . winner-undo)
+         ("M-`"        . winner-undo)
+         ("M-~"        . winner-redo))
+  :config
+  (winner-mode +1))
+
 (use-package ace-window
   :bind
   ("M-o" . 'ace-window))
@@ -643,10 +678,12 @@
                '(astro-mode . ("astro-ls" "--stdio"
                                :initializationOptions
                                (:typescript (:tsdk "./node_modules/typescript/lib")))))
+  (add-to-list 'eglot-server-programs '(yaml-mode . ("yaml-language-server" "--stdio")))
   :init
   ;; auto start eglot for astro-mode
   (add-hook 'astro-mode-hook 'eglot-ensure)
-  (add-hook 'web-mode-hook 'eglot-ensure))
+  (add-hook 'web-mode-hook 'eglot-ensure)
+  (add-hook 'yaml-mode-hook 'eglot-ensure))
 
 (use-package consult-eglot)
 (use-package consult-eglot-embark)
@@ -891,9 +928,12 @@
        ((string= lang "yaml-frontmatter")
         (setq org-mdx--frontmatter code)
         "")
-       ((member lang '("jsx" "mdx"))
+       ((string= lang "html")
+        (format "<div dangerouslySetInnerHTML={{__html: `%s`}} />"
+                (replace-regexp-in-string "`" "\\\\`" code)))
+       ((member lang '("jsx" "mdx" "markdown"))
         code)
-       (t (org-md-src-block src-block nil info)))))
+       (t (org-export-with-backend 'md src-block nil info)))))
 
   (defun org-mdx-plain-text (text info)
     "Export plain text with Unicode preserved, no HTML entities."
@@ -1109,11 +1149,32 @@ READINGS-DIR is passed through to `rfh/select-reading-file'."
                 (read-string "Link: ")
               (rfh/select-reading-file readings-dir)))))
 
-  (defun rfh/format-yaml-reading-entry (author title citation selection resource-type resource-value)
+  (defun rfh/prompt-note ()
+    "Prompt for note text and type. Returns (text . type) cons or nil if skipped.
+Type is nil for default, or \"tip\"/\"caution\" for special types."
+    (let ((text (read-string "Note (optional): ")))
+      (when (and text (not (string-empty-p text)))
+        (let ((type-choice (completing-read "Note type: " '("default" "tip" "caution") nil t nil nil "default")))
+          (cons text (unless (string= type-choice "default") type-choice))))))
+
+  (defun rfh/format-yaml-note (note)
+    "Format YAML notes field from NOTE cons (text . type).
+Returns formatted notes line with 8-space indent."
+    (let ((text (car note))
+          (type (cdr note)))
+      (if type
+          (format "        notes: [{ text: %s, type: %s }],"
+                  (rfh/yaml-escape-string text)
+                  (rfh/yaml-escape-string type))
+        (format "        notes: [{ text: %s }],"
+                (rfh/yaml-escape-string text)))))
+
+  (defun rfh/format-yaml-reading-entry (author title citation selection resource-type resource-value &optional note)
     "Format YAML flow mapping for reading entry.
 Uses 4-space indent for '- {', 8-space for fields, 6-space for '}'.
-Omits empty optional fields (citation, selection).
-RESOURCE-TYPE is 'link or 'filename."
+Omits empty optional fields (citation, selection, note).
+RESOURCE-TYPE is 'link or 'filename.
+NOTE is a (text . type) cons from `rfh/prompt-note' or nil."
     (let ((lines (list "    - {"
                        (format "        author: %s," (rfh/yaml-escape-string author)))))
       (when (and selection (not (string-empty-p selection)))
@@ -1122,6 +1183,8 @@ RESOURCE-TYPE is 'link or 'filename."
                                       (format "        %s: %s," (symbol-name resource-type) (rfh/yaml-escape-string resource-value)))))
       (when (and citation (not (string-empty-p citation)))
         (setq lines (append lines (list (format "        citation: %s," (rfh/yaml-escape-string citation))))))
+      (when note
+        (setq lines (append lines (list (rfh/format-yaml-note note)))))
       (setq lines (append lines (list "      }")))
       (string-join lines "\n")))
 
@@ -1137,10 +1200,11 @@ RESOURCE-TYPE is 'link or 'filename."
            (title (or (rfh/citar-get-field citekey "title") ""))
            (citation (rfh/citar-format-citation citekey))
            (selection (read-string "Selection (optional): "))
+           (note (rfh/prompt-note))
            (resource (rfh/prompt-link-or-filename readings-dir))
            (yaml-entry (rfh/format-yaml-reading-entry
                         author title citation selection
-                        (car resource) (cdr resource))))
+                        (car resource) (cdr resource) note)))
       (insert yaml-entry)))
 
 (defun rfh/set-org-heading-height ()
