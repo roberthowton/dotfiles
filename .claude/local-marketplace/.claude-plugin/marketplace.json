@@ -1,0 +1,32 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "local",
+  "description": "Local personal Claude Code plugins",
+  "owner": {
+    "name": "rfh"
+  },
+  "plugins": [
+    {
+      "name": "denote-notes",
+      "description": "Skills for creating and updating Denote notes via emacsclient",
+      "version": "1.0.0",
+      "author": {
+        "name": "rfh"
+      },
+      "source": "./plugins/denote-notes",
+      "category": "productivity",
+      "strict": false
+    },
+    {
+      "name": "roberthowtondotcom",
+      "description": "Skills for managing the roberthowtondotcom Astro site",
+      "version": "1.0.0",
+      "author": {
+        "name": "rfh"
+      },
+      "source": "./plugins/roberthowtondotcom",
+      "category": "productivity",
+      "strict": false
+    }
+  ]
+}

@@ -1,8 +1,20 @@
 {
+  "model": "opusplan",
   "enabledPlugins": {
     "typescript-lsp@claude-plugins-official": true,
-    "github@claude-plugins-official": true
+    "github@claude-plugins-official": true,
+    "skill-creator@claude-plugins-official": true,
+    "denote-notes@local": true,
+    "roberthowtondotcom@local": true,
+    "document-skills@anthropic-agent-skills": true
   },
-  "effortLevel": "medium",
-  "model": "opusplan"
+  "extraKnownMarketplaces": {
+    "local": {
+      "source": {
+        "source": "directory",
+        "path": "/Users/rfh/dotfiles/.claude/local-marketplace"
+      }
+    }
+  },
+  "effortLevel": "medium"
 }

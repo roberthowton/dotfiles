@@ -1,5 +1,25 @@
 - In all interactions and commit messages, be extremely concise and sacrifice grammar for the sake of concision.
 
+## cmux
+
+cmux is a terminal multiplexer with a browser API, available at `/Applications/cmux.app/Contents/Resources/bin/cmux`.
+
+When a task involves inspecting or interacting with a web UI (checking styles, verifying layout, clicking elements, taking snapshots), check if cmux is available and use it proactively. Do not wait to be asked.
+
+### Workflow
+
+1. Detect environment: `cmux ping` — if it fails, cmux isn't available; fall back to other methods.
+2. Find the browser surface: `cmux list-pane-surfaces` (and `cmux list-pane-surfaces --pane <id>` for other panes) — look for a surface with a page title.
+3. All browser commands require `--surface <id>`:
+   - Navigate: `cmux browser --surface <id> goto "<url>"`
+   - Wait: `cmux browser --surface <id> wait --load-state complete`
+   - Snapshot (semantic tree): `cmux browser --surface <id> snapshot --compact [--selector "<css>"]`
+   - Click: `cmux browser --surface <id> click "<selector>"`
+   - Eval JS: `cmux browser --surface <id> eval "<script>"`
+   - Get styles: `cmux browser --surface <id> get styles "<selector>" "<prop1,prop2>"`
+   - Get box: `cmux browser --surface <id> get box "<selector>"`
+4. Iterate: snapshot → identify issues → edit code → reload → snapshot again.
+
 ## PR Comments
 
 <pr-comment-rule>

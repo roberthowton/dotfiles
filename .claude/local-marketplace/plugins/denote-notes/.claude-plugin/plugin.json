@@ -1,0 +1,7 @@
+{
+  "name": "denote-notes",
+  "description": "Skills for creating and updating Denote notes via emacsclient",
+  "author": {
+    "name": "rfh"
+  }
+}
