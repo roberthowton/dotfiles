@@ -6,3 +6,6 @@
 
 # Emacs lock files
 .#*
+
+# MacOS Finder files
+.DS_Store
