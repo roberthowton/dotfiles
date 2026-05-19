@@ -74,12 +74,11 @@ Dispatch all four subagents **in the same message** and wait for all to complete
 
 ### Subagent 2 — Assets
 
-> Download the course image and create the readings directory for a new course in the roberthowtondotcom repo at `/Users/rfh/dev/roberthowtondotcom`.
+> Download the course image for a new course in the roberthowtondotcom repo at `/Users/rfh/dev/roberthowtondotcom`.
 >
 > 1. `mkdir -p src/content/course/<slug>/assets`
 > 2. `curl -L "<imageUrl>" -o "src/content/course/<slug>/assets/<filename>"`
 >    - Derive `<filename>` from the URL basename; use a short kebab-case name if it's generic.
-> 3. `mkdir -p src/content/readings/<slug>`
 >
 > Return the `<filename>` used.
 
@@ -146,11 +145,11 @@ image:
   src: "./assets/<filename>"
   alt: "<imageAlt>"
 details:
-  dates: "<dates>"
-  meetingTimes: "<meetingTimes>"
-  meetingPlace: "<meetingPlace>"
-  meetingPlaceUrl: <meetingPlaceUrl>
-  googleMapsUrl: "<googleMapsUrl>"
+  dates: "<dates or 'TBA'>"
+  meetingTimes: "<meetingTimes or 'TBA'>"
+  meetingPlace: "<meetingPlace or 'TBA'>"
+  meetingPlaceUrl: <meetingPlaceUrl or 'https://thebrooklyninstitute.com'>
+  googleMapsUrl: "<googleMapsUrl or 'https://www.google.com/maps'>"
 ---
 
 <course description paragraphs>
@@ -172,8 +171,8 @@ image:
   src: "./assets/<filename>"
   alt: "<imageAlt>"
 details:
-  dates: "<dates>"
-  meetingTimes: "<meetingTimes>"
+  dates: "<dates or 'TBA'>"
+  meetingTimes: "<meetingTimes or 'TBA'>"
 ---
 
 <course description paragraphs>
@@ -182,13 +181,15 @@ details:
 Notes:
 - Omit `meetingLink` if Zoom URL isn't known yet
 - Write the full course description as the MDX body — no imports or headings, just the paragraphs from BISR
+- All required fields must always be present. Use `"TBA"` for unknown strings, `"https://www.google.com/maps"` for unknown `googleMapsUrl`, and `"https://thebrooklyninstitute.com"` for unknown `meetingPlaceUrl` — never omit required fields even when data is unavailable
 
 ## Step 5: Confirm
 
 Report:
-- Files created: image path, readings dir, MDX path
+- Files created: image path, MDX path
 - WorkOS org ID and role slug
 - Calendar events created
 - `cv.json` updated
+- To add readings: `pnpm upload-readings upload <slug> <localDir>` (Vercel Blob private store), then add `filename:` entries to lecture frontmatter
 - When enrollment opens: set `hideLoginLink: false`
 - If online: add `meetingLink` to frontmatter when Zoom URL is available

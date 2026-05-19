@@ -6,7 +6,8 @@
     "skill-creator@claude-plugins-official": true,
     "denote-notes@local": true,
     "roberthowtondotcom@local": true,
-    "document-skills@anthropic-agent-skills": true
+    "document-skills@anthropic-agent-skills": true,
+    "vercel@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "local": {
