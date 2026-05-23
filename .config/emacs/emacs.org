@@ -1061,6 +1061,21 @@ Enable spell checking when =ispell= is found in =exec-path=.
     (add-hook 'text-mode-hook #'flyspell-mode)
     (add-hook 'prog-mode-hook #'flyspell-prog-mode))
 
+  (rfh/leader-keys
+    "S"  '(:ignore t :which-key "spelling")
+    "Ss" '(flyspell-correct-at-point :which-key "correct word")
+    "Sn" '(flyspell-goto-next-error :which-key "next error")
+    "Sb" '(flyspell-buffer :which-key "check buffer")
+    "Sa" '((lambda () (interactive)
+             (let ((current-word (thing-at-point 'word t)))
+               (when current-word
+                 (ispell-send-string (concat "*" current-word "\n"))
+                 (setq ispell-pdict-modified-p '(t))
+                 (ispell-pdict-save nil t)
+                 (flyspell-unhighlight-at (point))
+                 (message "Added '%s' to dictionary" current-word))))
+           :which-key "add to dictionary"))
+
 #+end_src
 
 ** Parens
@@ -1314,14 +1329,18 @@ Use =pdf-tools= to read pdf files in Emacs
     (defvar-local rfh/refontify-timer nil)
 
     (defun rfh/unhide-current-line (limit)
-      "Font-lock function"
-      (let ((start (max (point) (car rfh/current-line)))
-      (end (min limit (cdr rfh/current-line))))
-  (when (< start end)
-    (remove-text-properties start end
-  			  '(invisible t display "" composition ""))
-    (goto-char limit)
-    t)))
+      "Font-lock search function: reveal hidden markup on current line."
+      (when (and (consp rfh/current-line)
+                 (integerp (car rfh/current-line))
+                 (integerp (cdr rfh/current-line)))
+        (let ((start (max (point) (car rfh/current-line)))
+              (end (min limit (cdr rfh/current-line))))
+          (when (< start end)
+            (remove-text-properties start end
+                                    '(invisible t display "" composition ""))
+            (set-match-data (list start end))
+            (goto-char limit)
+            t))))
 
     (defun rfh/refontify-on-linemove ()
       "Post-command-hook — debounced via idle timer."
@@ -1338,7 +1357,7 @@ Use =pdf-tools= to read pdf files in Emacs
                     (lambda ()
                       (when (buffer-live-p buf)
                         (with-current-buffer buf
-                          (font-lock-fontify-block 3))))))))))
+                          (font-lock-fontify-block 1))))))))))
 
     (defun rfh/markdown-unhighlight ()
       "Enable markdown concealling"
