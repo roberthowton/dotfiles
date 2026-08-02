@@ -1793,6 +1793,47 @@ NOTE is a (text . type) cons from `rfh/prompt-note' or nil."
 
 #+end_src
 
+* Hyperbole
+
+[[https://www.gnu.org/software/hyperbole/][GNU Hyperbole]]: implicit buttons, HyRolo, Koutliner, HyWiki.
+
+The Action Key ({M-RET}, {S-mouse-2}) acts on whatever is at point - file paths,
+URLs, Org links, grep hits, stack traces. The Assist Key is {C-u M-RET}. The
+full menu is on {C-h h}.
+
+#+begin_src emacs-lisp
+
+  (use-package hyperbole
+    ;; GNU ELPA is the canonical source; avoids relying on MELPA's mirror build.
+    :pin "elpa"
+    :init
+    ;; Hyperbole claims this at init while it is still 'unset, so set it first.
+    ;; `buttons' keeps M-RET acting on Hyperbole buttons and Org links, and lets
+    ;; every other Org context fall through to `org-meta-return'.
+    (setq hsys-org-enable-smart-keys 'buttons)
+    :config
+    ;; `hywiki-directory' has a :set function, so it must go through customize.
+    ;; Kept outside `denote-directory' so consult-notes doesn't index WikiWords.
+    (customize-set-variable 'hywiki-directory "~/Documents/HyWiki/")
+    (setq hyrolo-file-list '("~/Documents/Notes/hyrolo.org"))
+
+    (hyperbole-mode 1)
+
+    (rfh/leader-keys
+      "h"  '(:ignore t :which-key "hyperbole")
+      "hh" '(hyperbole :which-key "menu")
+      "ha" '(hkey-either :which-key "action key")
+      "hA" '(hkey-help :which-key "action key help")
+      "he" '(hui:ebut-create :which-key "create button")
+      "hg" '(hui:gbut-create :which-key "create global button")
+      "hr" '(hyrolo-fgrep :which-key "rolo search")
+      "hR" '(hyrolo-add :which-key "rolo add entry")
+      "hw" '(hywiki-find-referent :which-key "hywiki page")
+      "hk" '(kfile:find :which-key "koutline")
+      "hs" '(hui-search-web :which-key "web search")))
+
+#+end_src
+
 * Org Mode
 
 ** Basic Configuration

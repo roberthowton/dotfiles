@@ -3,9 +3,9 @@
 ;; NOTE: `init.el' is auto-generated from `emacs.org'. Save changes to `emacs.org' to edit this file.
 
 (add-hook 'emacs-startup-hook
-    (lambda ()
-      (message "Emacs loaded in %s."
-	       (emacs-init-time))))
+	    (lambda ()
+	      (message "Emacs loaded in %s."
+		       (emacs-init-time))))
 
 (tool-bar-mode -1)                       ; disable toolbar
 (set-fringe-mode 10)                     ; give some breathing room
@@ -230,12 +230,12 @@
   :config
   ;; Add all your customizations prior to loading the themes
   (setq modus-themes-italic-constructs t
-  modus-themes-bold-constructs nil
-  modus-themes-org-blocks 'tinted-background)
+	  modus-themes-bold-constructs nil
+	  modus-themes-org-blocks 'tinted-background)
 
   ;; Maybe define some palette overrides, such as by using our presets
   (setq modus-themes-common-palette-overrides
-  modus-themes-preset-overrides-faint)
+	  modus-themes-preset-overrides-faint)
 
   ;; Load the theme of your choice.
   (load-theme 'modus-vivendi-tinted :no-confirm)
@@ -327,16 +327,16 @@
   ;; We display [CRM<separator>], e.g., [CRM,] if the separator is a comma.
   (defun crm-indicator (args)
     (cons (format "[CRM%s] %s"
-	    (replace-regexp-in-string
-	     "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
-	     crm-separator)
-	    (car args))
-    (cdr args)))
+		    (replace-regexp-in-string
+		     "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
+		     crm-separator)
+		    (car args))
+	    (cdr args)))
   (advice-add #'completing-read-multiple :filter-args #'crm-indicator)
 
   ;; Do not allow the cursor in the minibuffer prompt
   (setq minibuffer-prompt-properties
-  '(read-only t cursor-intangible t face minibuffer-prompt))
+	  '(read-only t cursor-intangible t face minibuffer-prompt))
   (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
 
   ;; Enable recursive minibuffers
@@ -372,9 +372,9 @@
     :config
     ;; Hide the mode line of the Embark live/completions buffers
     (add-to-list 'display-buffer-alist
-	   '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
-	     nil
-	     (window-parameters (mode-line-format . none))))
+		   '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+		     nil
+		     (window-parameters (mode-line-format . none))))
     (global-set-key [remap describe-bindings] #'embark-bindings)
     (global-set-key (kbd "C-.") #'embark-act)
     (setq prefix-help-command #'embark-prefix-help-command))
@@ -1024,7 +1024,7 @@
 
 (use-package consult-notes
   :commands (consult-notes
-       consult-notes-search-in-all-notes)
+	       consult-notes-search-in-all-notes)
   :config
   ;; (setq consult-notes-file-dir-sources '(("denote"  ?d  "~/Documents/Notes/")))
   (consult-notes-denote-mode))
@@ -1238,6 +1238,35 @@ NOTE is a (text . type) cons from `rfh/prompt-note' or nil."
                         (car resource) (cdr resource) note)))
       (insert yaml-entry)))
 
+(use-package hyperbole
+  ;; GNU ELPA is the canonical source; avoids relying on MELPA's mirror build.
+  :pin "elpa"
+  :init
+  ;; Hyperbole claims this at init while it is still 'unset, so set it first.
+  ;; `buttons' keeps M-RET acting on Hyperbole buttons and Org links, and lets
+  ;; every other Org context fall through to `org-meta-return'.
+  (setq hsys-org-enable-smart-keys 'buttons)
+  :config
+  ;; `hywiki-directory' has a :set function, so it must go through customize.
+  ;; Kept outside `denote-directory' so consult-notes doesn't index WikiWords.
+  (customize-set-variable 'hywiki-directory "~/Documents/HyWiki/")
+  (setq hyrolo-file-list '("~/Documents/Notes/hyrolo.org"))
+
+  (hyperbole-mode 1)
+
+  (rfh/leader-keys
+    "h"  '(:ignore t :which-key "hyperbole")
+    "hh" '(hyperbole :which-key "menu")
+    "ha" '(hkey-either :which-key "action key")
+    "hA" '(hkey-help :which-key "action key help")
+    "he" '(hui:ebut-create :which-key "create button")
+    "hg" '(hui:gbut-create :which-key "create global button")
+    "hr" '(hyrolo-fgrep :which-key "rolo search")
+    "hR" '(hyrolo-add :which-key "rolo add entry")
+    "hw" '(hywiki-find-referent :which-key "hywiki page")
+    "hk" '(kfile:find :which-key "koutline")
+    "hs" '(hui-search-web :which-key "web search")))
+
 (defun rfh/set-org-heading-height ()
     (set-face-attribute 'org-todo nil :height 0.8)
     (set-face-attribute 'org-document-title nil :height 1.5)
@@ -1329,7 +1358,7 @@ NOTE is a (text . type) cons from `rfh/prompt-note' or nil."
 
 (defun rfh/org-mode-visual-fill ()
   (setq visual-fill-column-width 80
-  visual-fill-column-center-text t)
+	  visual-fill-column-center-text t)
   (visual-fill-column-mode 1))
 
 (use-package visual-fill-column
@@ -1368,7 +1397,7 @@ NOTE is a (text . type) cons from `rfh/prompt-note' or nil."
   (org-roam-directory "~/projects/org/")
   (org-roam-completion-everywhere t)
   :bind (:map org-mode-map
-  ("C-M-i" . completion-at-point))
+	  ("C-M-i" . completion-at-point))
   :config
   (org-roam-db-autosync-enable))
 
