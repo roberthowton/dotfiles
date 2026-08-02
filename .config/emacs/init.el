@@ -1253,6 +1253,12 @@ NOTE is a (text . type) cons from `rfh/prompt-note' or nil."
   (setq hyrolo-file-list '("~/Documents/Notes/hyrolo.org"))
 
   (hyperbole-mode 1)
+  ;; Evil's per-state keymaps (e.g. evil-collection's outline integration,
+  ;; which binds M-<return> in normal state and org-mode inherits since
+  ;; org-mode derives from outline-mode) live in `emulation-mode-map-alists',
+  ;; which outranks ordinary minor-mode maps like `hyperbole-mode-map'.
+  ;; Without this, evil wins M-RET in Org buffers instead of Hyperbole.
+  (add-to-list 'emulation-mode-map-alists `((hyperbole-mode . ,hyperbole-mode-map)))
 
   (rfh/leader-keys
     "h"  '(:ignore t :which-key "hyperbole")
