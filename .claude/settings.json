@@ -7,7 +7,8 @@
     "denote-notes@local": true,
     "roberthowtondotcom@local": true,
     "document-skills@anthropic-agent-skills": true,
-    "vercel@claude-plugins-official": true
+    "vercel@claude-plugins-official": true,
+    "frontend-design@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "local": {
@@ -17,5 +18,5 @@
       }
     }
   },
-  "effortLevel": "medium"
+  "tui": "fullscreen"
 }
