@@ -2014,6 +2014,15 @@ Requires pandoc.
 
 #+end_src
 
+*** Ox-Reveal
+
+#+begin_src emacs-lisp
+
+  (use-package ox-reveal
+    :after ox)
+
+#+end_src
+
 ** Org-Publish
 
 #+begin_src emacs-lisp

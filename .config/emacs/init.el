@@ -3,9 +3,9 @@
 ;; NOTE: `init.el' is auto-generated from `emacs.org'. Save changes to `emacs.org' to edit this file.
 
 (add-hook 'emacs-startup-hook
-	    (lambda ()
-	      (message "Emacs loaded in %s."
-		       (emacs-init-time))))
+    (lambda ()
+      (message "Emacs loaded in %s."
+	       (emacs-init-time))))
 
 (tool-bar-mode -1)                       ; disable toolbar
 (set-fringe-mode 10)                     ; give some breathing room
@@ -230,12 +230,12 @@
   :config
   ;; Add all your customizations prior to loading the themes
   (setq modus-themes-italic-constructs t
-	  modus-themes-bold-constructs nil
-	  modus-themes-org-blocks 'tinted-background)
+  modus-themes-bold-constructs nil
+  modus-themes-org-blocks 'tinted-background)
 
   ;; Maybe define some palette overrides, such as by using our presets
   (setq modus-themes-common-palette-overrides
-	  modus-themes-preset-overrides-faint)
+  modus-themes-preset-overrides-faint)
 
   ;; Load the theme of your choice.
   (load-theme 'modus-vivendi-tinted :no-confirm)
@@ -327,16 +327,16 @@
   ;; We display [CRM<separator>], e.g., [CRM,] if the separator is a comma.
   (defun crm-indicator (args)
     (cons (format "[CRM%s] %s"
-		    (replace-regexp-in-string
-		     "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
-		     crm-separator)
-		    (car args))
-	    (cdr args)))
+	    (replace-regexp-in-string
+	     "\\`\\[.*?]\\*\\|\\[.*?]\\*\\'" ""
+	     crm-separator)
+	    (car args))
+    (cdr args)))
   (advice-add #'completing-read-multiple :filter-args #'crm-indicator)
 
   ;; Do not allow the cursor in the minibuffer prompt
   (setq minibuffer-prompt-properties
-	  '(read-only t cursor-intangible t face minibuffer-prompt))
+  '(read-only t cursor-intangible t face minibuffer-prompt))
   (add-hook 'minibuffer-setup-hook #'cursor-intangible-mode)
 
   ;; Enable recursive minibuffers
@@ -372,9 +372,9 @@
     :config
     ;; Hide the mode line of the Embark live/completions buffers
     (add-to-list 'display-buffer-alist
-		   '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
-		     nil
-		     (window-parameters (mode-line-format . none))))
+	   '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+	     nil
+	     (window-parameters (mode-line-format . none))))
     (global-set-key [remap describe-bindings] #'embark-bindings)
     (global-set-key (kbd "C-.") #'embark-act)
     (setq prefix-help-command #'embark-prefix-help-command))
@@ -1024,7 +1024,7 @@
 
 (use-package consult-notes
   :commands (consult-notes
-	       consult-notes-search-in-all-notes)
+       consult-notes-search-in-all-notes)
   :config
   ;; (setq consult-notes-file-dir-sources '(("denote"  ?d  "~/Documents/Notes/")))
   (consult-notes-denote-mode))
@@ -1329,7 +1329,7 @@ NOTE is a (text . type) cons from `rfh/prompt-note' or nil."
 
 (defun rfh/org-mode-visual-fill ()
   (setq visual-fill-column-width 80
-	  visual-fill-column-center-text t)
+  visual-fill-column-center-text t)
   (visual-fill-column-mode 1))
 
 (use-package visual-fill-column
@@ -1368,7 +1368,7 @@ NOTE is a (text . type) cons from `rfh/prompt-note' or nil."
   (org-roam-directory "~/projects/org/")
   (org-roam-completion-everywhere t)
   :bind (:map org-mode-map
-	  ("C-M-i" . completion-at-point))
+  ("C-M-i" . completion-at-point))
   :config
   (org-roam-db-autosync-enable))
 
@@ -1388,6 +1388,9 @@ NOTE is a (text . type) cons from `rfh/prompt-note' or nil."
 
 (use-package pandoc-mode)
 (use-package ox-pandoc
+  :after ox)
+
+(use-package ox-reveal
   :after ox)
 
 (defun rfh/org-beamer-publish-to-pdf (plist filename pub-dir)
