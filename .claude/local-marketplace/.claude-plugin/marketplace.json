@@ -27,6 +27,17 @@
       "source": "./plugins/roberthowtondotcom",
       "category": "productivity",
       "strict": false
+    },
+    {
+      "name": "institutio-physica",
+      "description": "Skills for the Proclus Institutio Physica translation repo",
+      "version": "1.0.0",
+      "author": {
+        "name": "rfh"
+      },
+      "source": "./plugins/institutio-physica",
+      "category": "productivity",
+      "strict": false
     }
   ]
 }
