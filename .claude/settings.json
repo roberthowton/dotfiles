@@ -6,6 +6,7 @@
     "skill-creator@claude-plugins-official": true,
     "denote-notes@local": true,
     "roberthowtondotcom@local": true,
+    "institutio-physica@local": true,
     "document-skills@anthropic-agent-skills": true,
     "vercel@claude-plugins-official": true,
     "frontend-design@claude-plugins-official": true
