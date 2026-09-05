@@ -102,24 +102,18 @@ Dispatch all four subagents **in the same message** and wait for all to complete
 
 > Update `src/content/academic/cv.json` in the roberthowtondotcom repo at `/Users/rfh/dev/roberthowtondotcom`.
 >
-> In the `courses` array:
->
-> 1. Insert at the top (reverse-chronological):
+> In the `courses` array, insert at the top (reverse-chronological):
 > ```json
 > {
 >   "term": "<term>",
 >   "title": "<title>",
 >   "institution": "Brooklyn Institute for Social Research",
 >   "url": "/course/<slug>",
->   "upcoming": true,
 >   "previewTerm": "<abbreviated term>"
 > }
 > ```
 >
-> 2. Audit `current` and `upcoming` flags on existing BISR entries using today's date (<today's date>):
->    - `current`: true only if the course is actively running now
->    - `upcoming`: true only if the start date is in the future
->    - Otherwise remove or set to false
+> Do not add `current`/`upcoming` fields — the homepage derives "Current"/"Upcoming" placement automatically from the course's own `details.dates` (falling back to `term` only for entries with no local `/course/<slug>` page), via `src/lib/courseUtils.ts`. No manual audit step needed.
 
 ---
 
