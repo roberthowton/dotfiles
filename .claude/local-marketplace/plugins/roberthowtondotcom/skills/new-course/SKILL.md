@@ -66,11 +66,9 @@ Dispatch all four subagents **in the same message** and wait for all to complete
 >    - `name`: "<Keyword> Students"
 >    - `slug`: "org-<keyword>"
 >
-> 3. Set it as the default using `mcp__workos__update_organization`:
->    - `organization_id`: <orgId>
->    - `default_role`: `{ "slug": "org-<keyword>" }`
->
 > Return the `orgId`.
+>
+> Note: `mcp__workos__update_organization`'s `default_role` param is a no-op (confirmed: response never echoes it, dashboard "Org default" badge doesn't change) — the default flag lives on the role, not the org, and there's no `update_role` tool. Setting the role as org default, plus creating/attaching the permission, must both be done manually in the dashboard (Step 4b below).
 
 ### Subagent 2 — Assets
 
@@ -183,6 +181,16 @@ Notes:
 - Write the full course description as the MDX body — no imports or headings, just the paragraphs from BISR
 - All required fields must always be present. Use `"TBA"` for unknown strings, `"https://www.google.com/maps"` for unknown `googleMapsUrl`, and `"https://thebrooklyninstitute.com"` for unknown `meetingPlaceUrl` — never omit required fields even when data is unavailable
 
+## Step 4b: Role defaults + permission (manual — blocking)
+
+Neither of these can be automated via WorkOS API/MCP tools — no `update_role` tool exists, and `update_organization`'s `default_role` param is a confirmed no-op. Do not skip or downgrade this to a mention in the final report. After Phase A completes, use `AskUserQuestion` to block until the user confirms they've done it. Give them these exact steps in the dashboard (Production env, org from Step 1's `orgId`):
+
+1. Organizations → `<orgId>` → Roles → `<Keyword> Students` (`org-<keyword>`) → `...` menu → Set as organization default
+2. Authorization → Permissions → Create permission: name `View <Title> Class`, slug `class:<keyword>:view`
+3. Organizations → `<orgId>` → Roles → `<Keyword> Students` (`org-<keyword>`) → attach the `class:<keyword>:view` permission
+
+This mirrors the pattern already used by other course roles (e.g. `class:kripke:view`, `class:color:view`). Options for the question: "Done" / "Skip for now". If skipped, still proceed to Step 5 but flag it as outstanding.
+
 ## Step 5: Confirm
 
 Report:
@@ -190,6 +198,7 @@ Report:
 - WorkOS org ID and role slug
 - Calendar events created
 - `cv.json` updated
+- Step 4b (org default role + permission): done, or flagged outstanding if skipped
 - To add readings: `pnpm upload-readings upload <slug> <localDir>` (Vercel Blob private store), then add `filename:` entries to lecture frontmatter
 - When enrollment opens: set `hideLoginLink: false`
 - If online: add `meetingLink` to frontmatter when Zoom URL is available
