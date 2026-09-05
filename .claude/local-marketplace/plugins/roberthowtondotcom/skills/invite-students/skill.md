@@ -66,7 +66,7 @@ Wait for confirmation before sending.
 For each email:
 
 1. Call `mcp__workos__list_users` with `email: <email>` to check for an existing WorkOS user.
-2. If none found, call `mcp__workos__create_user` with `email: <email>` and `email_verified: false` to create one.
+2. If none found, call `mcp__workos__create_user` with `email: <email>`, `email_verified: false`, and a best-effort `first_name`/`last_name` derived from the local part (before `@`) — the app's account page and header avatar need these to avoid showing a bare/duplicated email and a "?" avatar. Split the local part on `.`, `_`, `-`, `+`; title-case each token; if there are 2+ tokens use the first as `first_name` and the rest joined as `last_name`; if there's only one token, use it as `first_name` and omit `last_name`. E.g. `jane.doe` → `Jane` / `Doe`; `jdoe123` → `Jdoe123` (no last name).
 3. Call `mcp__workos__create_organization_membership`:
    - `user_id`: the found/created user's id
    - `organization_id`: `<orgId>`
