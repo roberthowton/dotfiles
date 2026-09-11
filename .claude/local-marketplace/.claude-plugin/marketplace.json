@@ -18,17 +18,6 @@
       "strict": false
     },
     {
-      "name": "roberthowtondotcom",
-      "description": "Skills for managing the roberthowtondotcom Astro site",
-      "version": "1.0.0",
-      "author": {
-        "name": "rfh"
-      },
-      "source": "./plugins/roberthowtondotcom",
-      "category": "productivity",
-      "strict": false
-    },
-    {
       "name": "institutio-physica",
       "description": "Skills for the Proclus Institutio Physica translation repo",
       "version": "1.0.0",
@@ -36,6 +25,17 @@
         "name": "rfh"
       },
       "source": "./plugins/institutio-physica",
+      "category": "productivity",
+      "strict": false
+    },
+    {
+      "name": "zotero",
+      "description": "Skills for managing the Zotero library via the zotero-mcp server",
+      "version": "1.0.0",
+      "author": {
+        "name": "rfh"
+      },
+      "source": "./plugins/zotero",
       "category": "productivity",
       "strict": false
     }

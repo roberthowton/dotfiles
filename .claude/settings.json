@@ -5,8 +5,8 @@
     "github@claude-plugins-official": true,
     "skill-creator@claude-plugins-official": true,
     "denote-notes@local": true,
-    "roberthowtondotcom@local": true,
     "institutio-physica@local": true,
+    "zotero@local": true,
     "document-skills@anthropic-agent-skills": true,
     "vercel@claude-plugins-official": true,
     "frontend-design@claude-plugins-official": true
@@ -19,5 +19,11 @@
       }
     }
   },
-  "tui": "fullscreen"
+  "modelSettings": {
+    "claude-sonnet-5": {
+      "effortLevel": "medium"
+    }
+  },
+  "tui": "fullscreen",
+  "agentPushNotifEnabled": true
 }
