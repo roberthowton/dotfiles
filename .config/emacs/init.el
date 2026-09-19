@@ -1010,7 +1010,8 @@
    denote-directory (expand-file-name "~/Documents/Notes/")
    denote-known-keywords '("emacs" "philosophy" "dev")
    denote-infer-keywords t
-   denote-date-prompt-use-org-read-date t)
+   denote-date-prompt-use-org-read-date t
+   denote-file-type 'markdown-yaml)
   (rfh/leader-keys
     "n"  '(:ignore t :which-key "notes")
     "nn" '(denote :which-key "new note")
