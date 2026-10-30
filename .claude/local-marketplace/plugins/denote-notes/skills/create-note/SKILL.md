@@ -17,7 +17,7 @@ Based on the user's argument and the conversation context, propose a title and t
 
 - Title: concise, descriptive, in plain English (denote will slugify it)
 - Tags: pick from existing tags where appropriate; infer new ones if clearly warranted
-- Format: `.org` by default; use `markdown-yaml` if the user mentions markdown
+- Format: `markdown-yaml` (`.md`) by default; use `org` if the user mentions org-mode
 
 Present your proposal briefly:
 > Title: "Aristotle on Substance" | Tags: `philosophy`, `bisr`

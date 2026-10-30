@@ -4,7 +4,7 @@
 
 - **Notes directory**: `~/Documents/Notes/`
 - **Emacs server**: Running — use `emacsclient` for all operations
-- **Default format**: `.org`; use `markdown-yaml` if user requests markdown
+- **Default format**: `markdown-yaml` (`.md`); use `org` if user requests org-mode
 - **Config**: `~/dotfiles/.config/emacs/emacs.org` (denote section)
 
 ## File naming convention
@@ -27,16 +27,7 @@ YYYYMMDDThhmmss--title-slug__tag1_tag2.ext
 
 New tags can be inferred from content — denote has `denote-infer-keywords t`.
 
-## Org frontmatter format
-
-```org
-#+title:      Note Title
-#+date:       [YYYY-MM-DD Day HH:MM]
-#+filetags:   :tag1:tag2:
-#+identifier: YYYYMMDDThhmmss
-```
-
-## Markdown frontmatter format (denote-markdown, YAML)
+## Markdown frontmatter format (denote-markdown, YAML) — default
 
 ```yaml
 ---
@@ -47,21 +38,30 @@ identifier: "YYYYMMDDThhmmss"
 ---
 ```
 
+## Org frontmatter format (only if the user requests org-mode)
+
+```org
+#+title:      Note Title
+#+date:       [YYYY-MM-DD Day HH:MM]
+#+filetags:   :tag1:tag2:
+#+identifier: YYYYMMDDThhmmss
+```
+
 ## emacsclient patterns
 
 ### Create a new note
 
 ```bash
-emacsclient --eval "(buffer-file-name (denote \"TITLE\" '(\"tag1\" \"tag2\") 'org))"
+emacsclient --eval "(buffer-file-name (denote \"TITLE\" '(\"tag1\" \"tag2\") 'markdown-yaml))"
 ```
 
-For markdown:
+For org-mode:
 ```bash
-emacsclient --eval "(buffer-file-name (denote \"TITLE\" '(\"tag1\") 'markdown-yaml))"
+emacsclient --eval "(buffer-file-name (denote \"TITLE\" '(\"tag1\") 'org))"
 ```
 
 The return value is the full path to the newly created file (with quotes), e.g.:
-`"/Users/rfh/Documents/Notes/20260317T143022--my-title__tag1_tag2.org"`
+`"/Users/rfh/Documents/Notes/20260317T143022--my-title__tag1_tag2.md"`
 
 After creation, denote has already written the frontmatter. Write the body content directly to the file using the Edit/Write tools — no need to go back through emacsclient for content.
 

@@ -1,0 +1,7 @@
+{
+  "name": "zotero",
+  "description": "Skills for managing the Zotero library via the zotero-mcp server",
+  "author": {
+    "name": "rfh"
+  }
+}
