@@ -23,3 +23,12 @@ _darcs
 ^/COPYING
 
 /brewfiles/*
+
+
+\.DS_Store
+
+# repo-level instructions, not for ~
+/CLAUDE\.md
+
+# redundant; settings.json points at the repo path directly
+/\.claude/local-marketplace

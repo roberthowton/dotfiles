@@ -34,3 +34,16 @@ brew install stow
 cd ~/dotfiles
 stow .
 ```
+
+## LLM memory
+
+Shared by all agents; stow links `.agents/` -> `~/.agents`.
+
+- `AGENTS.md` -> `~/AGENTS.md`: startup + save instructions for any agent.
+- `.agents/memory/`: memory files + `MEMORY.md` index. Edit in place.
+- Claude Code reads the same dir via `autoMemoryDirectory` in
+  `~/dev/.claude/settings.json` (project-scoped to `~/dev`, not in this repo).
+  Other projects keep their own default memory.
+- `CLAUDE.md` (repo root) and `.claude/local-marketplace` are ignored by stow;
+  settings.json points at the marketplace path directly, so the repo must live
+  at `~/dotfiles`.
