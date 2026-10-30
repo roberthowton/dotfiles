@@ -25,5 +25,34 @@
     }
   },
   "tui": "fullscreen",
-  "agentPushNotifEnabled": true
+  "agentPushNotifEnabled": true,
+  "autoMode": {
+    "environment": [
+      "### Org-wide",
+      "**Organization**: None configured",
+      "**Cloud provider(s)**: None configured",
+      "**Repository visibility**: Not queryable (no remotes in this repo — /Users/rfh/dev has no git remotes configured); assume private",
+      "**Internal sharing / snippet hosting**: None configured — treat public paste/gist services as outside the trust boundary",
+      "**Secrets management**: None configured",
+      "**Default / protected branches**: unknown — origin/HEAD unset, no remotes configured for this repo",
+      "**CI/CD deploy targets**: None configured",
+      "**Network posture**: None configured",
+      "**Host containment**: None configured — assume Claude Code runs on an ordinary developer machine with open internet",
+      "**Source control**: The trusted repo (/Users/rfh/dev) — no remotes configured, no additional orgs configured",
+      "**Trusted internal domains**: None configured",
+      "**Trusted cloud buckets**: None configured",
+      "**Key internal services**: None configured",
+      "**Internal package registry**: None configured",
+      "**Sensitive data locations & audiences**: any file or store holding personal data, confidential business data, credentials, regulated data, or similarly sensitive material; preserve exact handles when known and share only with audiences cleared at the [named+specifics] bar — note: .env.local / .env.example files found in sibling checkouts (roberthowtondotcom/.env.local, sustoichia/.env.local, workos-mcp/.env.example), out of scope for this project but worth flagging as sensitive-looking paths generally",
+      "**Data retention / declassification**: None configured",
+      "**Sensitive remote targets**: any namespace, host, or container whose name carries `prod` or `production` as a whole word or name segment",
+      "**Protected deployment namespaces / environments**: None configured — fall back to the Sensitive remote targets heuristic",
+      "**Protected IaC scopes**: IAM, RBAC, networking, quota, and node-pool resources; anything whose name or tag carries `prod` or `production` as a whole word or name segment",
+      "### User-specific",
+      "**Primary use of Claude Code**: software development (personal/hobby projects — academic, web, small tools)",
+      "**Trusted repo**: /Users/rfh/dev (its working directory) — no remotes configured currently; treat as private local scratch space until a remote is added",
+      "**Org-specific CLis**: None configured",
+      "routine under robbie/ prefix: per user's CLAUDE.md, git branches created by Claude should be prefixed \"robbie/\" to indicate authorship — this is a naming convention, not a trust grant"
+    ]
+  }
 }
