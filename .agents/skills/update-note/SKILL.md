@@ -7,7 +7,7 @@ allowed-tools: [Bash, Read, Write, Edit, Glob, Grep]
 
 # Update Denote Note
 
-Read `references/denote-context.md` first — it has emacsclient patterns, tag list, and file format details.
+Read `../create-note/references/denote-context.md` first — it has emacsclient patterns, tag list, and file format details.
 
 ## Workflow
 

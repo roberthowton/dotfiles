@@ -44,6 +44,13 @@ Shared by all agents; stow links `.agents/` -> `~/.agents`.
 - Claude Code reads the same dir via `autoMemoryDirectory` in
   `~/dev/.claude/settings.json` (project-scoped to `~/dev`, not in this repo).
   Other projects keep their own default memory.
-- `CLAUDE.md` (repo root) and `.claude/local-marketplace` are ignored by stow;
-  settings.json points at the marketplace path directly, so the repo must live
-  at `~/dotfiles`.
+- `CLAUDE.md` (repo root) is ignored by stow.
+
+## Skills
+
+Personal skills live in `.agents/skills/<name>/SKILL.md` (generic agent format;
+stow links `.agents/` -> `~/.agents`). Claude Code reads `~/.claude/skills`, so
+`.claude/skills/<name>` are relative symlinks into `.agents/skills`. Add a skill:
+create the dir under `.agents/skills`, add a matching link under `.claude/skills`,
+run `stow .`. Skill scripts are referenced by absolute `~/.agents/skills/...`
+paths in permission allowlists (`~/dev/.claude/settings*.json`).
